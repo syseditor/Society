@@ -28,7 +28,7 @@ class SessionManager
 
     public static function closeSession(Session $session): void
     {
-        $new_array = array_diff(self::$sessions, [$session]);
-        self::$sessions = $new_array;
+        $name = $session->getPlayer()->getName();
+        unset(self::$sessions[$name]);
     }
 }

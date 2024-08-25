@@ -12,4 +12,9 @@ class Session
     {
         $this->player = $player;
     }
+
+    public function getPlayer(): Player
+    {
+        return $this->player;
+    }
 }
