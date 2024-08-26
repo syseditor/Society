@@ -6,7 +6,7 @@ use Society\database\Database;
 
 class JSONDatabase extends Database
 {
-    public function check(string $dbName): void
+    public function check(): void
     {
         // TODO: Implement check() method.
     }

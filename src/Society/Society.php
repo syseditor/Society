@@ -7,6 +7,7 @@ use pocketmine\utils\SingletonTrait;
 use pocketmine\utils\Config;
 
 use Society\listeners\SessionListener;
+use Society\database\mysql\MySQLDatabase;
 
 class Society extends PluginBase
 {
@@ -27,7 +28,17 @@ class Society extends PluginBase
         $this->registerListeners();
         $this->initDatabases();
 
+        # MySQL Database setup
+        MySQLDatabase::getInstance()->connect();
+        MySQLDatabase::getInstance()->check();
+
         $this->getLogger()->notice("[~] Plugin is on!");
+    }
+
+    public function onDisable(): void
+    {
+        # MySQL Database disconnection
+        MySQLDatabase::getInstance()->disconnect();
     }
 
     protected function registerListeners(): void

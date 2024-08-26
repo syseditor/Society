@@ -1,13 +1,5 @@
-#Database settings
-#Type of database per plugin's feature
-#0 for JSON, 1 for MySQL
-
-session-system: 1
-friend-system: 1
-party-system: 0
-guild-system: 1
-
 #MySQL Settings
-servername: 'localhost'
-username: 'syseditor'
-password: 'sparta4589'
+servername: ''
+username: ''
+password: ''
+databaseName: ''
