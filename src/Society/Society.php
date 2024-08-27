@@ -28,17 +28,14 @@ class Society extends PluginBase
         $this->registerListeners();
         $this->initDatabases();
 
-        # MySQL Database setup
-        MySQLDatabase::getInstance()->connect();
-        MySQLDatabase::getInstance()->check();
-
         $this->getLogger()->notice("[~] Plugin is on!");
     }
 
     public function onDisable(): void
     {
         # MySQL Database disconnection
-        MySQLDatabase::getInstance()->disconnect();
+        MySQLDatabase::disconnect();
+        $this->getLogger()->notice('[~] Connection with MySQL Database terminated.');
     }
 
     protected function registerListeners(): void
@@ -55,7 +52,10 @@ class Society extends PluginBase
 
     protected function initDatabases(): void
     {
-
+        # MySQL Database initialization
+        MySQLDatabase::initClass();
+        MySQLDatabase::connect();
+        MySQLDatabase::check();
     }
 
     public function getSettings(): Config

@@ -4,5 +4,5 @@ namespace Society\database;
 
 abstract class Database
 {
-    public abstract function check(): void;
+    abstract public static function check(): void;
 }

@@ -6,8 +6,10 @@ use Society\database\Database;
 
 class JSONDatabase extends Database
 {
-    public function check(): void
+    public static function check(): void
     {
         // TODO: Implement check() method.
     }
+
+
 }

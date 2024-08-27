@@ -4,6 +4,8 @@ namespace Society\session;
 
 use pocketmine\player\Player;
 
+use Society\database\mysql\MySQLDatabase;
+
 class SessionManager
 {
     private static array $sessions = [];
@@ -21,7 +23,10 @@ class SessionManager
     public static function openSession(Player $player): void
     {
         $name = $player->getName();
-        $session = new Session($player);
+        $session = new Session($player, null);
+
+        MySQLDatabase::register($session); #If not already registered in the database
+        # Load the session here
 
         self::$sessions[$name] = $session;
     }
