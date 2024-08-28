@@ -25,8 +25,8 @@ class SessionManager
         $name = $player->getName();
         $session = new Session($player, null);
 
-        MySQLDatabase::register($session); #If not already registered in the database
-        # Load the session here
+        MySQLDatabase::registerPlayer($session); #If not already registered in the database
+        MySQLDatabase::loadPlayer($session);
 
         self::$sessions[$name] = $session;
     }

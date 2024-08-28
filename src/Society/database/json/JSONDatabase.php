@@ -10,6 +10,4 @@ class JSONDatabase extends Database
     {
         // TODO: Implement check() method.
     }
-
-
 }

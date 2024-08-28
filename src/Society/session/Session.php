@@ -6,22 +6,26 @@ use pocketmine\player\Player;
 
 use Society\party\Party;
 use Society\guild\Guild;
+use Society\guild\GuildRole;
 
 class Session
 {
     private Player $player;
     private null|Party $party;
     private null|Guild $guild;
+    private null|GuildRole $guildRole;
     private bool $isOnParty;
     private bool $isOnGuild;
+    private array $friendlist = [];
 
-    public function __construct(Player $player, null|Guild $guild)
+    public function __construct(Player $player) #DAMN CHECK THE DAMN GUILD
     {
         $this->player = $player;
         $this->party = null;
-        $this->guild = $guild;
+        $this->guild = null;
+        $this->guildRole = null;
         $this->isOnParty = false;
-        $this->isOnGuild = !is_null($guild);
+        $this->isOnGuild = !is_null($this->guild); #ALWAYS FALSE, PRIOR TO CHANGES
     }
 
     public function getPlayer(): Player
@@ -39,10 +43,14 @@ class Session
         return $this->guild;
     }
 
+    public function getGuildRole(): null|GuildRole
+    {
+        return $this->guildRole;
+    }
+
     public function getFriendList(): ?array
     {
-        //TODO
-        return null;
+        return $this->friendlist;
     }
 
     public function checkAvailability(string $option): bool
@@ -52,6 +60,21 @@ class Session
             'guild' => $this->isOnGuild,
             default => false,
         };
+    }
+
+    public function setFriendlist(?array $friendlist): void
+    {
+        $this->friendlist = $friendlist;
+    }
+
+    public function setGuild(Guild $guild): void
+    {
+        $this->guild = $guild;
+    }
+
+    public function setGuildRole(GuildRole $role): void
+    {
+        $this->guildRole = $role;
     }
 
     public function addToParty(Party $party): void

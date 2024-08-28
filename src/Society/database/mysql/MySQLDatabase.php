@@ -2,8 +2,11 @@
 
 namespace Society\database\mysql;
 
-use Society\session\Session;
 use Society\database\Database;
+use Society\guild\GuildManager;
+use Society\session\Session;
+use Society\guild\Guild;
+use Society\guild\GuildRole;
 use Society\Society;
 use mysqli, mysqli_sql_exception;
 
@@ -56,9 +59,11 @@ class MySQLDatabase extends Database
 
         # Table-based queries
         $checkFriend = 'SELECT PlayerName FROM Friends;'; #"SELECT EXISTS (SELECT 'Friends' FROM information_schema.tables);";
-        $checkGuild = 'SELECT PlayerName FROM Guilds'; #"SELECT EXISTS (SELECT 'Guilds' FROM information_schema.tables);";
+        $checkGuild = 'SELECT PlayerName FROM Guilds;'; #"SELECT EXISTS (SELECT 'Guilds' FROM information_schema.tables);";
+        $checkGuildInfo = 'SELECT GuildName FROM GuildsInfo;';
         $createFriend = "CREATE TABLE Friends (PlayerName varchar(255) NOT NULL , FriendOne varchar(255), FriendTwo varchar(255), FriendThree varchar(255), FriendFour varchar(255), FriendFive varchar(255), FriendSix varchar(255), FriendSeven varchar(255), FriendEight varchar(255), FriendNine varchar(255), FriendTen varchar(255));";
-        $createGuild = "CREATE TABLE Guilds (PlayerName varchar(255) NOT NULL, GuildName varchar(255))";
+        $createGuild = "CREATE TABLE Guilds (PlayerName varchar(255) NOT NULL, GuildName varchar(255), GuildRole varchar(255));";
+        $createGuildInfo = 'CREATE TABLE GuildsInfo (GuildName varchar(255) NOT NULL, GuildLeader varchar(255) NOT NULL, GuildLevel int DEFAULT 0, GuildExp int DEFAULT 0);';
 
         # Checking if the database exists
         try
@@ -125,6 +130,28 @@ class MySQLDatabase extends Database
                 Society::getInstance()->getServer()->forceShutdown();
             }
         }
+
+        # Checking if the GuildsInfo table exists
+        try
+        {
+            mysqli_query(self::$conn, $checkGuildInfo);
+            self::$logger->notice('[~] GuildsInfo table exists, continuing.');
+        }
+        catch (mysqli_sql_exception)
+        {
+            self::$logger->warning('[~] GuildsInfo table does not exist, creating one ASAP...');
+            try
+            {
+                mysqli_query(self::$conn, $createGuildInfo);
+                self::$logger->notice('[~] GuildsInfo table was created, continuing.');
+            }
+            catch (mysqli_sql_exception) {
+                self::$logger->error('[~] Error: '.mysqli_error(self::$conn));
+                self::$logger->error('[~] GuildsInfo table could not be created.');
+                self::$logger->emergency('[~] Forcing server shutdown to prevent further damage...');
+                Society::getInstance()->getServer()->forceShutdown();
+            }
+        }
     }
 
     public static function disconnect(): void
@@ -133,7 +160,7 @@ class MySQLDatabase extends Database
     }
 
     # Register the player
-    public static function register(Session $session): void
+    public static function registerPlayer(Session $session): void
     {
         $name = $session->getPlayer()->getName();
 
@@ -142,8 +169,8 @@ class MySQLDatabase extends Database
         $checkPlayerInGuilds = 'SELECT CASE WHEN EXISTS (SELECT PlayerName FROM Guilds WHERE PlayerName = "'.$name.'") THEN TRUE ELSE FALSE END;';
 
         # Registers
-        $registerInFriends = 'INSERT INTO Friends (PlayerName) VALUES ("'.$name.'")';
-        $registerInGuilds = 'INSERT INTO Guilds (PlayerName) VALUES ("'.$name.'")';
+        $registerInFriends = 'INSERT INTO Friends (PlayerName) VALUES ("'.$name.'");';
+        $registerInGuilds = 'INSERT INTO Guilds (PlayerName) VALUES ("'.$name.'");';
 
         # First the Friends table...
         try
@@ -206,7 +233,73 @@ class MySQLDatabase extends Database
         self::$logger->notice('[~] Player '.$name.' is properly registered in the Database.');
     }
 
-    public static function load(Session $session): void
+    public static function loadPlayer(Session $session): void
+    {
+        $name = $session->getPlayer()->getName();
+        $friendlist = [];
+
+        # Getting info
+        $getFriends = 'SELECT DISTINCT * FROM Friends WHERE PlayerName = "'.$name.'";';
+        $getGuild = 'SELECT DISTINCT * FROM Guilds WHERE PlayerName = "'.$name.'";';
+
+        # Get the friends
+        try
+        {
+            $query = mysqli_query(self::$conn, $getFriends);
+            $results = $query->fetch_all(MYSQLI_ASSOC);
+            if (empty($results))
+            {
+                mysqli_query(self::$conn, 'SIGNAL SQLSTATE "40000" SET MESSAGE_TEXT = "Player\'s friendlist ('.$name.') does not exist (error during register?)";');
+            } else
+            {
+                foreach ($results as $assoc => $result)
+                {
+                    if ($assoc = "PlayerName") continue;
+                    $friendlist[] = $result;
+                }
+                print_r($friendlist);
+                $session->setFriendlist($friendlist);
+            }
+        }
+        catch (mysqli_sql_exception)
+        {
+            self::$logger->error('[~] Error: '.mysqli_error(self::$conn));
+            self::$logger->error('[~] Unable to gain the requested information.');
+            self::$logger->emergency('[~] Forcing server shutdown to prevent further damage...');
+            Society::getInstance()->getServer()->forceShutdown();
+        }
+
+        # Get the Guild
+        try
+        {
+            $query = mysqli_query(self::$conn, $getGuilds);
+            $results = $query->fetch_all(MYSQLI_ASSOC);
+            if (empty($results))
+            {
+                mysqli_query(self::$conn, 'SIGNAL SQLSTATE "40000" SET MESSAGE_TEXT = "Player\'s Guild field ('.$name.') does not exist (error during register?)";');
+            } else
+            {
+                $guild = $results["GuildName"];
+                $role = $results["GuildRole"];
+                $session->setGuild(GuildManager::getGuildByName($guild));
+                $session->setGuildRole(GuildManager::getGuildRoleByName($role));
+            }
+        }
+        catch (mysqli_sql_exception)
+        {
+            self::$logger->error('[~] Error: '.mysqli_error(self::$conn));
+            self::$logger->error('[~] Unable to gain the requested information.');
+            self::$logger->emergency('[~] Forcing server shutdown to prevent further damage...');
+            Society::getInstance()->getServer()->forceShutdown();
+        }
+    }
+
+    public static function registerGuild(Guild $guild): void
+    {
+        //TODO
+    }
+
+    public static function loadGuilds(): void
     {
         //TODO
     }

@@ -6,6 +6,7 @@ use pocketmine\plugin\PluginBase;
 use pocketmine\utils\SingletonTrait;
 use pocketmine\utils\Config;
 
+use Society\guild\GuildManager;
 use Society\listeners\SessionListener;
 use Society\database\mysql\MySQLDatabase;
 
@@ -26,6 +27,7 @@ class Society extends PluginBase
         $this->settings = new Config($this->getResourceFolder() . "settings.yml", Config::YAML);
 
         $this->registerListeners();
+        $this->initStaticClasses();
         $this->initDatabases();
 
         $this->getLogger()->notice("[~] Plugin is on!");
@@ -50,10 +52,15 @@ class Society extends PluginBase
         }
     }
 
+    protected function initStaticClasses(): void
+    {
+        MySQLDatabase::initClass();
+        GuildManager::initClass();
+    }
+
     protected function initDatabases(): void
     {
         # MySQL Database initialization
-        MySQLDatabase::initClass();
         MySQLDatabase::connect();
         MySQLDatabase::check();
     }
