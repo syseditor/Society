@@ -67,12 +67,12 @@ class Session
         $this->friendlist = $friendlist;
     }
 
-    public function setGuild(Guild $guild): void
+    public function setGuild(null|Guild $guild): void
     {
         $this->guild = $guild;
     }
 
-    public function setGuildRole(GuildRole $role): void
+    public function setGuildRole(null|GuildRole $role): void
     {
         $this->guildRole = $role;
     }

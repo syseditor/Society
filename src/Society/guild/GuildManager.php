@@ -27,13 +27,15 @@ class GuildManager
         return self::$guilds;
     }
 
-    public static function getGuildByName(string $name): Guild
+    public static function getGuildByName(null|string $name): null|Guild
     {
+        if (is_null($name)) return null;
         return self::$guilds[$name];
     }
 
-    public static function getGuildRoleByName(string $name): GuildRole
+    public static function getGuildRoleByName(null|string $name): null|GuildRole
     {
+        if (is_null($name)) return null;
         return self::$guildRoles[$name];
     }
 }

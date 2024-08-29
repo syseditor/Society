@@ -6,9 +6,9 @@ use Society\database\Database;
 use Society\guild\GuildManager;
 use Society\session\Session;
 use Society\guild\Guild;
-use Society\guild\GuildRole;
 use Society\Society;
 use mysqli, mysqli_sql_exception;
+use RuntimeException;
 
 class MySQLDatabase extends Database
 {
@@ -58,11 +58,11 @@ class MySQLDatabase extends Database
         $createDb = 'CREATE DATABASE ' . self::$dbName . ';'; #Requires database creation privileges
 
         # Table-based queries
-        $checkFriend = 'SELECT PlayerName FROM Friends;'; #"SELECT EXISTS (SELECT 'Friends' FROM information_schema.tables);";
-        $checkGuild = 'SELECT PlayerName FROM Guilds;'; #"SELECT EXISTS (SELECT 'Guilds' FROM information_schema.tables);";
+        $checkFriend = 'SELECT PlayerId FROM Friends;'; #"SELECT EXISTS (SELECT 'Friends' FROM information_schema.tables);";
+        $checkGuild = 'SELECT PlayerId FROM Guilds;'; #"SELECT EXISTS (SELECT 'Guilds' FROM information_schema.tables);";
         $checkGuildInfo = 'SELECT GuildName FROM GuildsInfo;';
-        $createFriend = "CREATE TABLE Friends (PlayerName varchar(255) NOT NULL , FriendOne varchar(255), FriendTwo varchar(255), FriendThree varchar(255), FriendFour varchar(255), FriendFive varchar(255), FriendSix varchar(255), FriendSeven varchar(255), FriendEight varchar(255), FriendNine varchar(255), FriendTen varchar(255));";
-        $createGuild = "CREATE TABLE Guilds (PlayerName varchar(255) NOT NULL, GuildName varchar(255), GuildRole varchar(255));";
+        $createFriend = "CREATE TABLE Friends (PlayerId varchar(255) NOT NULL , FriendOne varchar(255), FriendTwo varchar(255), FriendThree varchar(255), FriendFour varchar(255), FriendFive varchar(255), FriendSix varchar(255), FriendSeven varchar(255), FriendEight varchar(255), FriendNine varchar(255), FriendTen varchar(255));";
+        $createGuild = "CREATE TABLE Guilds (PlayerId varchar(255) NOT NULL, GuildName varchar(255), GuildRole varchar(255));";
         $createGuildInfo = 'CREATE TABLE GuildsInfo (GuildName varchar(255) NOT NULL, GuildLeader varchar(255) NOT NULL, GuildLevel int DEFAULT 0, GuildExp int DEFAULT 0);';
 
         # Checking if the database exists
@@ -163,14 +163,15 @@ class MySQLDatabase extends Database
     public static function registerPlayer(Session $session): void
     {
         $name = $session->getPlayer()->getName();
+        $id = $session->getPlayer()->getUniqueId()->getInteger();
 
         # Checks
-        $checkPlayerInFriends = 'SELECT CASE WHEN EXISTS (SELECT PlayerName FROM Friends WHERE PlayerName = "'.$name.'") THEN TRUE ELSE FALSE END;';
-        $checkPlayerInGuilds = 'SELECT CASE WHEN EXISTS (SELECT PlayerName FROM Guilds WHERE PlayerName = "'.$name.'") THEN TRUE ELSE FALSE END;';
+        $checkPlayerInFriends = 'SELECT CASE WHEN EXISTS (SELECT PlayerId FROM Friends WHERE PlayerId = "'.$id.'") THEN TRUE ELSE FALSE END;';
+        $checkPlayerInGuilds = 'SELECT CASE WHEN EXISTS (SELECT PlayerId FROM Guilds WHERE PlayerId = "'.$id.'") THEN TRUE ELSE FALSE END;';
 
         # Registers
-        $registerInFriends = 'INSERT INTO Friends (PlayerName) VALUES ("'.$name.'");';
-        $registerInGuilds = 'INSERT INTO Guilds (PlayerName) VALUES ("'.$name.'");';
+        $registerInFriends = 'INSERT INTO Friends (PlayerId) VALUES ("'.$id.'");';
+        $registerInGuilds = 'INSERT INTO Guilds (PlayerId) VALUES ("'.$id.'");';
 
         # First the Friends table...
         try
@@ -230,23 +231,25 @@ class MySQLDatabase extends Database
             }
         }
 
-        self::$logger->notice('[~] Player '.$name.' is properly registered in the Database.');
+        self::$logger->notice('[~] Player '.$name.' with UUID "'.$id.'" is properly registered in the Database.');
     }
 
     public static function loadPlayer(Session $session): void
     {
         $name = $session->getPlayer()->getName();
+        $id = $session->getPlayer()->getUniqueId()->getInteger();
         $friendlist = [];
 
         # Getting info
-        $getFriends = 'SELECT DISTINCT * FROM Friends WHERE PlayerName = "'.$name.'";';
-        $getGuild = 'SELECT DISTINCT * FROM Guilds WHERE PlayerName = "'.$name.'";';
+        $getFriends = 'SELECT DISTINCT * FROM Friends WHERE PlayerId = "'.$id.'";';
+        $getGuild = 'SELECT DISTINCT * FROM Guilds WHERE PlayerId = "'.$id.'";';
 
         # Get the friends
         try
         {
             $query = mysqli_query(self::$conn, $getFriends);
-            $results = $query->fetch_all(MYSQLI_ASSOC);
+            $results = $query->fetch_assoc();
+            print_r($results);
             if (empty($results))
             {
                 mysqli_query(self::$conn, 'SIGNAL SQLSTATE "40000" SET MESSAGE_TEXT = "Player\'s friendlist ('.$name.') does not exist (error during register?)";');
@@ -254,7 +257,7 @@ class MySQLDatabase extends Database
             {
                 foreach ($results as $assoc => $result)
                 {
-                    if ($assoc = "PlayerName") continue;
+                    if ($assoc == "PlayerId") continue;
                     $friendlist[] = $result;
                 }
                 print_r($friendlist);
@@ -272,15 +275,16 @@ class MySQLDatabase extends Database
         # Get the Guild
         try
         {
-            $query = mysqli_query(self::$conn, $getGuilds);
-            $results = $query->fetch_all(MYSQLI_ASSOC);
+            $query = mysqli_query(self::$conn, $getGuild);
+            $results = $query->fetch_assoc();
+            print_r($results);
             if (empty($results))
             {
                 mysqli_query(self::$conn, 'SIGNAL SQLSTATE "40000" SET MESSAGE_TEXT = "Player\'s Guild field ('.$name.') does not exist (error during register?)";');
             } else
             {
-                $guild = $results["GuildName"];
-                $role = $results["GuildRole"];
+                $guild = $results["GuildName"]; echo $guild;
+                $role = $results["GuildRole"]; echo $role;
                 $session->setGuild(GuildManager::getGuildByName($guild));
                 $session->setGuildRole(GuildManager::getGuildRoleByName($role));
             }
@@ -302,5 +306,49 @@ class MySQLDatabase extends Database
     public static function loadGuilds(): void
     {
         //TODO
+    }
+
+    public function update(string $table, string $column, string $info, ?Session $session = null): void
+    {
+        switch ($table){
+            case 'Friends':
+                if (is_null($session)) throw new RuntimeException("[~] Couldn't update the Database: Session is null");
+                $id = $session->getPlayer()->getUniqueId()->getInteger();
+                $query = 'UPDATE Friends SET '.$column.' = '.$info.' WHERE PlayerId = "'.$id.'";';
+                try
+                {
+                      mysqli_query(self::$conn, $query);
+                      self::$logger->notice("[~] Successfully updated database"); //TO BE REMOVED
+                }
+                catch (mysqli_sql_exception)
+                {
+                    self::$logger->error('[~] Error: '.mysqli_error(self::$conn));
+                    self::$logger->error('[~] Unable to update the Database.');
+                    self::$logger->emergency('[~] Forcing server shutdown to prevent further damage...');
+                    Society::getInstance()->getServer()->forceShutdown();
+                }
+                break;
+            case 'Guilds':
+                if (is_null($session)) throw new RuntimeException("[~] Couldn't update the Database: Session is null");
+                $id = $session->getPlayer()->getUniqueId()->getInteger();
+                $query = 'UPDATE Guilds SET '.$column.' = '.$info.' WHERE PlayerId = "'.$id.'";';
+                try
+                {
+                    mysqli_query(self::$conn, $query);
+                    self::$logger->notice("[~] Successfully updated database"); //TO BE REMOVED
+                }
+                catch (mysqli_sql_exception)
+                {
+                    self::$logger->error('[~] Error: '.mysqli_error(self::$conn));
+                    self::$logger->error('[~] Unable to update the Database.');
+                    self::$logger->emergency('[~] Forcing server shutdown to prevent further damage...');
+                    Society::getInstance()->getServer()->forceShutdown();
+                }
+                break;
+            case 'GuildsInfo':
+                break;
+            default:
+                throw new RuntimeException("[~] Couldn't update the Database: Table out of range");
+        }
     }
 }
