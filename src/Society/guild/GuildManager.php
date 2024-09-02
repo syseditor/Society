@@ -10,10 +10,10 @@ class GuildManager
     public function __construct()
     {
         self::$guildRoles = array(
-            'member' => new GuildRole("member"),
-            'officer' => new GuildRole("officer"),
-            'leader' => new GuildRole("leader"),
-            'founder' => new GuildRole("founder")
+            'member' => new GuildRole("member", []),
+            'officer' => new GuildRole("officer", ['invite']),
+            'leader' => new GuildRole("leader", ['invite', 'kick']),
+            'founder' => new GuildRole("founder", ['invite', 'kick', 'promote', 'disband'])
         );
     }
 

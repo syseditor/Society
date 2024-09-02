@@ -14,6 +14,8 @@ class SessionListener implements Listener
     {
         $player = $event->getPlayer();
         $name = $player->getName();
+
+        # Server-side actions
         SessionManager::openSession($player);
         Society::getInstance()->getLogger()->notice("[~] Session opened: $name");
     }

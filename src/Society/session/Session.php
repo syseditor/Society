@@ -17,6 +17,7 @@ class Session
     private bool $isOnParty;
     private bool $isOnGuild;
     private array $friendlist = [];
+    private array $friendInvites = [];
 
     public function __construct(Player $player) #DAMN CHECK THE DAMN GUILD
     {

@@ -9,6 +9,7 @@ use pocketmine\utils\Config;
 use Society\guild\GuildManager;
 use Society\listeners\SessionListener;
 use Society\database\mysql\MySQLDatabase;
+use Society\commands\friends\FriendsCommand;
 
 class Society extends PluginBase
 {
@@ -27,6 +28,7 @@ class Society extends PluginBase
         $this->settings = new Config($this->getResourceFolder() . "settings.yml", Config::YAML);
 
         $this->registerListeners();
+        $this->registerCommands();
         $this->initStaticClasses();
         $this->initDatabases();
 
@@ -50,6 +52,15 @@ class Society extends PluginBase
         {
             $this->getServer()->getPluginManager()->registerEvents($listener, $this);
         }
+    }
+
+    public function registerCommands(): void
+    {
+        $commands = [
+            new FriendsCommand()
+        ];
+
+        $this->getServer()->getCommandMap()->registerAll("society", $commands);
     }
 
     protected function initStaticClasses(): void

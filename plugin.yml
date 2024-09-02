@@ -3,3 +3,13 @@ main: Society\Society
 version: 1.0.0
 api: 5.0.0
 author: syseditor
+
+commands:
+  friends:
+    description: "Friends command!"
+    permission: society.friends
+
+permissions:
+  society.friends:
+    description: "Permission for using the /friends command"
+    default: true
