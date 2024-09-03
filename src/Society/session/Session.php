@@ -4,9 +4,12 @@ namespace Society\session;
 
 use pocketmine\player\Player;
 
+use Society\commands\friends\utils\FriendInvitation;
+use Society\database\mysql\MySQLDatabase;
 use Society\party\Party;
 use Society\guild\Guild;
 use Society\guild\GuildRole;
+use Society\utils\Utils;
 
 class Session
 {
@@ -17,7 +20,8 @@ class Session
     private bool $isOnParty;
     private bool $isOnGuild;
     private array $friendlist = [];
-    private array $friendInvites = [];
+    private array $friendInvitesSent = [];
+    private array $friendInvitesReceived = [];
 
     public function __construct(Player $player) #DAMN CHECK THE DAMN GUILD
     {
@@ -54,6 +58,16 @@ class Session
         return $this->friendlist;
     }
 
+    public function getFriendInvitesSent(): array
+    {
+        return $this->friendInvitesSent;
+    }
+
+    public function getFriendInvitesReceived(): array
+    {
+        return $this->friendInvitesReceived;
+    }
+
     public function checkAvailability(string $option): bool
     {
         return match ($option) {
@@ -88,9 +102,33 @@ class Session
         //TODO: start building it ig
     }
 
-    public function addFriend(Player $player): void
+    public function addFriend(Session $session, string $type): void
     {
-        //TODO: start building it ig
+        $name = $session->getPlayer()->getName();
+        $id = $session->getPlayer()->getUniqueId();
+
+        $friendList = $this->getFriendList();
+        $i = 0;
+        do {$object = $friendList[$i]; ++$i;}
+        while (!is_null($object));
+
+        $slot = Utils::$friendSlotPositions[$i];
+
+        $friendList[$i] = $name;
+        MySQLDatabase::insert('Friends', $slot, $id, $this);
+
+        $this->sendMessage("Successfully added $name to your friend list");
+        if ($session->getPlayer()->isOnline()) $session->sendMessage("Successfully added ".$this->getPlayer()->getName()." to your friend list");
+
+        switch ($type)
+        {
+            case 'sent' or 'Sent':
+                unset($this->friendInvitesSent[$name]);
+                break;
+            case 'received' or 'Received':
+                unset($this->friendInvitesReceived[$name]);
+                break;
+        }
     }
 
     public function removeFromParty(): void
@@ -106,5 +144,28 @@ class Session
     public function removeFriend(string $name): void
     {
         //TODO: start building it ig
+    }
+
+    public function sendFriendInvitation(FriendInvitation $invitation): void
+    {
+        $receiver = $invitation->getReceiver();
+        $name = $receiver->getPlayer()->getName();
+
+        $this->friendInvitesSent[$name] = $invitation;
+        $this->sendMessage("Successfully sent a friend request to $name");
+    }
+
+    public function receiveFriendInvitation(FriendInvitation $invitation): void
+    {
+        $sender = $invitation->getReceiver();
+        $name = $sender->getPlayer()->getName();
+
+        $this->friendInvitesReceived[$name] = $invitation;
+        $this->sendMessage("$name wants to become your friend! Type `/friend accept $name` to accept OR `/friend decline $name` to decline");
+    }
+
+    public function sendMessage(string $message): void
+    {
+        $this->player->sendMessage($message);
     }
 }

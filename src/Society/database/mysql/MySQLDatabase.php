@@ -308,7 +308,7 @@ class MySQLDatabase extends Database
         //TODO
     }
 
-    public function update(string $table, string $column, string $info, ?Session $session = null): void
+    public static function insert(string $table, string $column, string $info, ?Session $session = null): void
     {
         switch ($table){
             case 'Friends':
@@ -351,4 +351,6 @@ class MySQLDatabase extends Database
                 throw new RuntimeException("[~] Couldn't update the Database: Table out of range");
         }
     }
+
+    public static function delete(): void {}
 }
