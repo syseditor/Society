@@ -14,9 +14,9 @@ use Society\utils\Utils;
 class Session
 {
     private Player $player;
-    private null|Party $party;
-    private null|Guild $guild;
-    private null|GuildRole $guildRole;
+    private ?Party $party;
+    private ?Guild $guild;
+    private ?GuildRole $guildRole;
     private bool $isOnParty;
     private bool $isOnGuild;
     private array $friendlist = [];
@@ -30,7 +30,7 @@ class Session
         $this->guild = null;
         $this->guildRole = null;
         $this->isOnParty = false;
-        $this->isOnGuild = !is_null($this->guild); #ALWAYS FALSE, PRIOR TO CHANGES
+        $this->isOnGuild = !is_null($this->guild); #ALWAYS FALSE DUE TO VARIABLE DECLARATION, PRIOR TO CHANGES
     }
 
     public function getPlayer(): Player
@@ -38,22 +38,22 @@ class Session
         return $this->player;
     }
 
-    public function getParty(): null|Party
+    public function getParty(): ?Party
     {
         return $this->party;
     }
 
-    public function getGuild(): null|Guild
+    public function getGuild(): ?Guild
     {
         return $this->guild;
     }
 
-    public function getGuildRole(): null|GuildRole
+    public function getGuildRole(): ?GuildRole
     {
         return $this->guildRole;
     }
 
-    public function getFriendList(): ?array
+    public function getFriendList(): array
     {
         return $this->friendlist;
     }
@@ -82,12 +82,12 @@ class Session
         $this->friendlist = $friendlist;
     }
 
-    public function setGuild(null|Guild $guild): void
+    public function setGuild(?Guild $guild): void
     {
         $this->guild = $guild;
     }
 
-    public function setGuildRole(null|GuildRole $role): void
+    public function setGuildRole(?GuildRole $role): void
     {
         $this->guildRole = $role;
     }
@@ -162,6 +162,41 @@ class Session
 
         $this->friendInvitesReceived[$name] = $invitation;
         $this->sendMessage("$name wants to become your friend! Type `/friend accept $name` to accept OR `/friend decline $name` to decline");
+    }
+
+    public function removeFriendInvitation(string $player, string $cause, string $type): void
+    {
+        switch ($cause)
+        {
+            case 'decline':
+                switch ($type)
+                {
+                    case 'sent' or 'Sent':
+                        unset($this->friendInvitesSent[$player]);
+                        $this->sendMessage("$player declined your friend request.");
+                        break;
+                    case 'received' or 'Received':
+                        unset($this->friendInvitesReceived[$player]);
+                        $this->sendMessage("You declined $player's friend request.");
+                        break;
+
+                }
+                break;
+            case 'abort':
+                switch ($type)
+                {
+                    case 'sent' or 'Sent':
+                        unset($this->friendInvitesSent[$player]);
+                        $this->sendMessage("You aborted your friend request to $player.");
+                        break;
+                    case 'received' or 'Received':
+                        unset($this->friendInvitesReceived[$player]);
+                        $this->sendMessage("$player aborted their friend request.");
+                        break;
+
+                }
+                break;
+        }
     }
 
     public function sendMessage(string $message): void

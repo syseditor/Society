@@ -5,6 +5,7 @@ namespace Society\commands\friends;
 use pocketmine\command\CommandSender;
 
 use Society\commands\friends\utils\FriendInvitation;
+use Society\session\Session;
 use Society\session\SessionManager;
 
 use Exception;
@@ -47,17 +48,17 @@ class FriendsCommandArguments
 
     public static function accept(CommandSender $sender, string $name): void #Accepts a request
     {
-        $applicant = SessionManager::getSessionByName($sender->getName());
+        $receiver = SessionManager::getSessionByName($sender->getName());
         try
         {
-            $invitation = $applicant->getFriendInvitesReceived()[$name];
+            $invitation = $receiver->getFriendInvitesReceived()[$name];
         }
         catch (Exception)
         {
-            $applicant->sendMessage("You don't have a friend request from $name");
+            $receiver->sendMessage("You don't have a friend request from $name");
             return;
         }
-        $receiver = $invitation->getReceiver();
+        $applicant = $invitation->getSender();
 
         $applicant->addFriend($receiver, 'sent');
         $receiver->addFriend($applicant, 'received');
@@ -65,11 +66,38 @@ class FriendsCommandArguments
 
     public static function decline(CommandSender $sender, string $name): void #Declines a request (sent by another player)
     {
+        $receiver = SessionManager::getSessionByName($sender->getName());
+        try
+        {
+            $invitation = $receiver->getFriendInvitesReceived()[$name];
+        }
+        catch (Exception)
+        {
+            $receiver->sendMessage("You don't have a friend request from $name");
+            return;
+        }
+        $applicant = $invitation->getReceiver();
 
+        $applicant->removeFriendInvitation($name, 'decline', 'sent');
+        $receiver->removeFriendInvitation($sender->getName(), 'decline', 'received');
     }
 
-    public static function delete(CommandSender $sender): void #Deletes a REQUEST (sent by the player itself)
+    public static function abort(CommandSender $sender, string $name): void #Deletes a REQUEST (sent by the player itself)
     {
+        $applicant = SessionManager::getSessionByName($sender->getName());
+        try
+        {
+            $invitation = $applicant->getFriendInvitesReceived()[$name];
+        }
+        catch (Exception)
+        {
+            $applicant->sendMessage("You haven't sent a friend request to $name");
+            return;
+        }
+        $receiver = $invitation->getReceiver();
+
+        $applicant->removeFriendInvitation($name, 'abort', 'sent');
+        $receiver->removeFriendInvitation($sender->getName(), 'abort', 'received');
 
     }
 

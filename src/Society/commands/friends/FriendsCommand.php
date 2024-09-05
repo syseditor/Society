@@ -5,10 +5,7 @@ namespace Society\commands\friends;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 
-use Society\session\SessionManager;
 use Society\Society;
-
-use Exception;
 
 class FriendsCommand extends Command
 {
@@ -21,9 +18,6 @@ class FriendsCommand extends Command
         $this->plugin = Society::getInstance();
     }
 
-    /**
-     * @inheritDoc
-     */
     public function execute(CommandSender $sender, string $commandLabel, array $args): void
     {
         $usage = $this->usageMessage;
@@ -50,7 +44,7 @@ class FriendsCommand extends Command
                 break;
             case 'delete':
                 if (!isset($args[1])) {$sender->sendMessage("You need to specify a player, to which you sent a friend request"); return;}
-                FriendsCommandArguments::delete($sender, $args[1]);
+                FriendsCommandArguments::abort($sender, $args[1]);
                 break;
             case 'remove':
                 if (!isset($args[1])) {$sender->sendMessage("You need to specify a friend"); return;}

@@ -10,7 +10,7 @@ class SessionManager
 {
     private static array $sessions = [];
 
-    public static function getSessions(): array
+    public static function getSessions(): array #MIGHT REMOVE IF NOT NEEDED
     {
         return self::$sessions;
     }
