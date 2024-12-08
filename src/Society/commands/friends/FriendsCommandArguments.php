@@ -2,10 +2,10 @@
 
 namespace Society\commands\friends;
 
+use http\Exception\RuntimeException;
 use pocketmine\command\CommandSender;
 
 use Society\commands\friends\utils\FriendInvitation;
-use Society\session\Session;
 use Society\session\SessionManager;
 
 use Exception;
@@ -20,8 +20,7 @@ class FriendsCommandArguments
         $final = "";
         $sum = 0;
 
-        foreach ($friends as $friend)
-        {
+        foreach ($friends as $friend) {
             if (is_null($friend)) continue;
             $final .= ';' . $friend;
             ++$sum;
@@ -35,15 +34,15 @@ class FriendsCommandArguments
         try
         {
             $receiver = SessionManager::getSessionByName($receiverName);
+            $applicant = SessionManager::getSessionByName($sender->getName());
+            $invitation = new FriendInvitation($applicant, $receiver);
+            $applicant->sendFriendInvitation($invitation);
+            $receiver->receiveFriendInvitation($invitation);
         }
         catch (Exception)
         {
-            $sender->sendMessage("Player $args[1] is not online.");
+            $sender->sendMessage("Player $receiverName is not online.");
         }
-        $applicant = SessionManager::getSessionByName($sender->getName());
-        $invitation = new FriendInvitation($applicant, $receiver);
-        $applicant->sendFriendInvitation($invitation);
-        $receiver->receiveFriendInvitation($invitation);
     }
 
     public static function accept(CommandSender $sender, string $name): void #Accepts a request
@@ -52,16 +51,17 @@ class FriendsCommandArguments
         try
         {
             $invitation = $receiver->getFriendInvitesReceived()[$name];
+            if (is_null($invitation)) throw new RuntimeException("Unknown player");
+            $applicant = $invitation->getSender();
+
+            $applicant->addFriend($receiver, 'sent');
+            $receiver->addFriend($applicant, 'received');
         }
         catch (Exception)
         {
             $receiver->sendMessage("You don't have a friend request from $name");
             return;
         }
-        $applicant = $invitation->getSender();
-
-        $applicant->addFriend($receiver, 'sent');
-        $receiver->addFriend($applicant, 'received');
     }
 
     public static function decline(CommandSender $sender, string $name): void #Declines a request (sent by another player)
@@ -70,16 +70,16 @@ class FriendsCommandArguments
         try
         {
             $invitation = $receiver->getFriendInvitesReceived()[$name];
+            $applicant = $invitation->getReceiver();
+
+            $applicant->removeFriendInvitation($name, 'decline', 'sent');
+            $receiver->removeFriendInvitation($sender->getName(), 'decline', 'received');
         }
         catch (Exception)
         {
             $receiver->sendMessage("You don't have a friend request from $name");
             return;
         }
-        $applicant = $invitation->getReceiver();
-
-        $applicant->removeFriendInvitation($name, 'decline', 'sent');
-        $receiver->removeFriendInvitation($sender->getName(), 'decline', 'received');
     }
 
     public static function abort(CommandSender $sender, string $name): void #Deletes a REQUEST (sent by the player itself)
@@ -88,21 +88,20 @@ class FriendsCommandArguments
         try
         {
             $invitation = $applicant->getFriendInvitesReceived()[$name];
+            $receiver = $invitation->getReceiver();
+
+            $applicant->removeFriendInvitation($name, 'abort', 'sent');
+            $receiver->removeFriendInvitation($sender->getName(), 'abort', 'received');
         }
         catch (Exception)
         {
             $applicant->sendMessage("You haven't sent a friend request to $name");
             return;
         }
-        $receiver = $invitation->getReceiver();
-
-        $applicant->removeFriendInvitation($name, 'abort', 'sent');
-        $receiver->removeFriendInvitation($sender->getName(), 'abort', 'received');
-
     }
 
-    public static function remove(CommandSender $sender): void #Removes a FRIEND
+    public static function remove(CommandSender $sender, string $name): void #Removes a FRIEND
     {
-
+        $applicant = SessionManager::getSessionByName($sender->getName());
     }
 }

@@ -30,7 +30,7 @@ class Session
         $this->guild = null;
         $this->guildRole = null;
         $this->isOnParty = false;
-        $this->isOnGuild = !is_null($this->guild); #ALWAYS FALSE DUE TO VARIABLE DECLARATION, PRIOR TO CHANGES
+        $this->isOnGuild = !is_null($this->guild); #ALWAYS FALSE DUE TO VARIABLE DECLARATION, PRIOR TO CHANGE
     }
 
     public function getPlayer(): Player
@@ -105,17 +105,19 @@ class Session
     public function addFriend(Session $session, string $type): void
     {
         $name = $session->getPlayer()->getName();
-        $id = $session->getPlayer()->getUniqueId();
+        $id = $session->getPlayer()->getUniqueId()->getInteger();
 
         $friendList = $this->getFriendList();
         $i = 0;
-        do {$object = $friendList[$i]; ++$i;}
-        while (!is_null($object));
+        while(!is_null($friendList[$i]) && $i < 10) $i++;
 
         $slot = Utils::$friendSlotPositions[$i];
+        echo $slot; //TODO: remove
 
         $friendList[$i] = $name;
-        MySQLDatabase::insert('Friends', $slot, $id, $this);
+        var_dump($friendList);
+
+        MySQLDatabase::insert("Friends", $slot, $id, $this);
 
         $this->sendMessage("Successfully added $name to your friend list");
         if ($session->getPlayer()->isOnline()) $session->sendMessage("Successfully added ".$this->getPlayer()->getName()." to your friend list");
@@ -141,7 +143,7 @@ class Session
         //TODO: start building it ig
     }
 
-    public function removeFriend(string $name): void
+    public function removeFriend(string $name, string $cause): void
     {
         //TODO: start building it ig
     }

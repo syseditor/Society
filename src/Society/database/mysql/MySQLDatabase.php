@@ -308,34 +308,18 @@ class MySQLDatabase extends Database
         //TODO
     }
 
-    public static function insert(string $table, string $column, string $info, ?Session $session = null): void
+    public static function insert(string $table, string $column, ?string $info, ?Session $session = null): void
     {
         switch ($table){
             case 'Friends':
+            case 'Guilds':
                 if (is_null($session)) throw new RuntimeException("[~] Couldn't update the Database: Session is null");
                 $id = $session->getPlayer()->getUniqueId()->getInteger();
-                $query = 'UPDATE Friends SET '.$column.' = '.$info.' WHERE PlayerId = "'.$id.'";';
+                $query = 'UPDATE '.$table.' SET '.$column.' = "'.$info.'" WHERE PlayerId = "'.$id.'";';
                 try
                 {
                       mysqli_query(self::$conn, $query);
                       self::$logger->notice("[~] Successfully updated database"); //TO BE REMOVED
-                }
-                catch (mysqli_sql_exception)
-                {
-                    self::$logger->error('[~] Error: '.mysqli_error(self::$conn));
-                    self::$logger->error('[~] Unable to update the Database.');
-                    self::$logger->emergency('[~] Forcing server shutdown to prevent further damage...');
-                    Society::getInstance()->getServer()->forceShutdown();
-                }
-                break;
-            case 'Guilds':
-                if (is_null($session)) throw new RuntimeException("[~] Couldn't update the Database: Session is null");
-                $id = $session->getPlayer()->getUniqueId()->getInteger();
-                $query = 'UPDATE Guilds SET '.$column.' = '.$info.' WHERE PlayerId = "'.$id.'";';
-                try
-                {
-                    mysqli_query(self::$conn, $query);
-                    self::$logger->notice("[~] Successfully updated database"); //TO BE REMOVED
                 }
                 catch (mysqli_sql_exception)
                 {
@@ -351,6 +335,4 @@ class MySQLDatabase extends Database
                 throw new RuntimeException("[~] Couldn't update the Database: Table out of range");
         }
     }
-
-    public static function delete(): void {}
 }
