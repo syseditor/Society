@@ -6,6 +6,7 @@ use http\Exception\RuntimeException;
 use pocketmine\command\CommandSender;
 
 use Society\commands\friends\utils\FriendInvitation;
+use Society\session\Session;
 use Society\session\SessionManager;
 
 use Exception;
@@ -25,8 +26,34 @@ class FriendsCommandArguments
             $final .= ';' . $friend;
             ++$sum;
         }
+
         if (empty($final)) $final = "None";
         $sender->sendMessage("You have $sum/10 friends: $final");
+    }
+
+    public static function requests(CommandSender $sender): void
+    {
+        $session = SessionManager::getSessionByName($sender->getName());
+        $reqs = $session->getFriendInvitesReceived();
+        $final = "";
+        $index = 1;
+
+        foreach ($reqs as $invitation)
+        {
+            if($invitation instanceof FriendInvitation)
+            {
+                $inviter = $invitation->getSender();
+                $final = $final . "$index) " . $inviter->getPlayer()->getName() . "\n";
+            }
+        }
+        if(empty($final)) $final = "You have no requests";
+        else
+        {
+            $text = "You have $index requests:\n\n";
+            $final = $text . $final;
+        }
+
+        $session->sendMessage($final);
     }
 
     public static function add(CommandSender $sender, string $receiverName): void #Requests
@@ -53,6 +80,12 @@ class FriendsCommandArguments
             $invitation = $receiver->getFriendInvitesReceived()[$name];
             if (is_null($invitation)) throw new RuntimeException("Unknown player");
             $applicant = $invitation->getSender();
+            if(!$applicant instanceof Session) throw new Exception();
+            if(!strcmp($receiver->getPlayer()->getName(), $applicant->getPlayer->getName()))
+            {
+                $receiver->sendMessage("You can't invite yourself!");
+                return;
+            }
 
             $applicant->addFriend($receiver, 'sent');
             $receiver->addFriend($applicant, 'received');

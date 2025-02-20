@@ -1,6 +1,7 @@
 {
   "require": {
     "php": "^8.1",
-    "ext-mysqli": "*"
+    "ext-mysqli": "*",
+    "ext-http": "*"
   }
 }

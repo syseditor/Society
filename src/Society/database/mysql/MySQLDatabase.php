@@ -308,7 +308,7 @@ class MySQLDatabase extends Database
         //TODO
     }
 
-    public static function insert(string $table, string $column, ?string $info, ?Session $session = null): void
+    public static function insert(string $table, string $column, string $info, ?Session $session = null): void
     {
         switch ($table){
             case 'Friends':
@@ -334,5 +334,12 @@ class MySQLDatabase extends Database
             default:
                 throw new RuntimeException("[~] Couldn't update the Database: Table out of range");
         }
+    }
+
+    public static function checkFriendUniqueness(string $id, Session $session): bool
+    {
+        $id = $session->getPlayer()->getUniqueId()->getInteger();
+        //continue
+        return false;
     }
 }

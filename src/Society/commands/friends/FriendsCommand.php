@@ -50,6 +50,9 @@ class FriendsCommand extends Command
                 if (!isset($args[1])) {$sender->sendMessage("You need to specify a friend"); return;}
                 FriendsCommandArguments::remove($sender, $args[1]);
                 break;
+            case 'requests':
+                FriendsCommandArguments::requests($sender);
+                break;
             default: {$sender->sendMessage("Invalid usage. Usage: $usage"); return;}
         }
     }

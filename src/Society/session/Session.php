@@ -7,6 +7,7 @@ use pocketmine\player\Player;
 use Society\commands\friends\utils\FriendInvitation;
 use Society\database\mysql\MySQLDatabase;
 use Society\party\Party;
+use Society\party\PartyRole;
 use Society\guild\Guild;
 use Society\guild\GuildRole;
 use Society\utils\Utils;
@@ -15,6 +16,7 @@ class Session
 {
     private Player $player;
     private ?Party $party;
+    private ?PartyRole $partyRole;
     private ?Guild $guild;
     private ?GuildRole $guildRole;
     private bool $isOnParty;
@@ -27,6 +29,7 @@ class Session
     {
         $this->player = $player;
         $this->party = null;
+        $this->partyRole = null;
         $this->guild = null;
         $this->guildRole = null;
         $this->isOnParty = false;
@@ -38,9 +41,19 @@ class Session
         return $this->player;
     }
 
+    public function getName(): string
+    {
+        return $this->player->getName();
+    }
+
     public function getParty(): ?Party
     {
         return $this->party;
+    }
+
+    public function getPartyRole(): ?PartyRole
+    {
+        return $this->partyRole;
     }
 
     public function getGuild(): ?Guild
@@ -97,6 +110,11 @@ class Session
         //TODO: start building it ig
     }
 
+    public function setPartyRole(PartyRole $role): void
+    {
+        $this->partyRole = $role;
+    }
+
     public function addToGuild(Guild $guild): void
     {
         //TODO: start building it ig
@@ -112,10 +130,9 @@ class Session
         while(!is_null($friendList[$i]) && $i < 10) $i++;
 
         $slot = Utils::$friendSlotPositions[$i];
-        echo $slot; //TODO: remove
 
         $friendList[$i] = $name;
-        var_dump($friendList);
+        var_dump($friendList); //to-remove
 
         MySQLDatabase::insert("Friends", $slot, $id, $this);
 

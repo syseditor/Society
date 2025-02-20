@@ -13,3 +13,9 @@ permissions:
   society.friends:
     description: "Permission for using the /friends command"
     default: true
+  society.party.ten:
+    description: "Ten members per party"
+    default: false
+  society.party.twenty:
+    description: "Twenty members per party"
+    default: false
