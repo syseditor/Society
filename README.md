@@ -1,1 +1,2 @@
 # Society
+Made for fun
