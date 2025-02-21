@@ -81,21 +81,29 @@ class Party
     {
         if(!is_null($this->officer))
         {
-            $this->demote($this->officer);
-            return $this->promote($member);
+            if(strcmp($this->officer->getName(), $member->getName()))
+            {
+                $this->demote($this->officer);
+                return $this->promote($member);
+            }
+            return false;
         }
         else
         {
+            $role = new PartyRole("officer");
+            $member->setPartyRole($role);
+            $this->officer = $member;
             return true;
         }
     }
 
     public function demote(Session $member): void
     {
-        if(is_null($this->officer)) $this->leader->sendMessage("[Party] Cannot demote member " . $member->getName());
-        else
+        if(!is_null($this->officer))
         {
-
+            $role = new PartyRole("member");
+            $member->setPartyRole($role);
+            $this->officer = null;
         }
     }
 

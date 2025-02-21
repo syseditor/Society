@@ -1,14 +1,13 @@
 <?php
 
-namespace Society\listeners;
+namespace Society;
 
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerLoginEvent;
 use pocketmine\event\player\PlayerQuitEvent;
 use Society\session\SessionManager;
-use Society\Society;
 
-class SessionListener implements Listener
+class SocietyListener implements Listener
 {
     public function onLogin(PlayerLoginEvent $event): void
     {

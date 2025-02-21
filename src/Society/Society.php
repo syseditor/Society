@@ -7,7 +7,6 @@ use pocketmine\utils\SingletonTrait;
 use pocketmine\utils\Config;
 
 use Society\guild\GuildManager;
-use Society\listeners\SessionListener;
 use Society\database\mysql\MySQLDatabase;
 use Society\commands\friends\FriendsCommand;
 
@@ -27,7 +26,7 @@ class Society extends PluginBase
         #Init settings
         $this->settings = new Config($this->getResourceFolder() . "settings.yml", Config::YAML);
 
-        $this->registerListeners();
+        $this->getServer()->getPluginManager()->registerEvents(new SocietyListener(), $this);
         $this->registerCommands();
         $this->initStaticClasses();
         $this->initDatabases();
@@ -40,18 +39,6 @@ class Society extends PluginBase
         # MySQL Database disconnection
         MySQLDatabase::disconnect();
         $this->getLogger()->notice('[~] Connection with MySQL Database terminated.');
-    }
-
-    protected function registerListeners(): void
-    {
-        $listeners = [
-            new SessionListener()
-        ];
-
-        foreach ($listeners as $listener)
-        {
-            $this->getServer()->getPluginManager()->registerEvents($listener, $this);
-        }
     }
 
     public function registerCommands(): void
