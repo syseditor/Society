@@ -72,9 +72,15 @@ class Party
         {
             $this->members[array_search($member, $this->members)] = null;
             --$this->memberCount;
+            $member->setCurrentChat(Constants::CHAT_GLOBAL);
             return true;
         }
         return false;
+    }
+
+    public function broadcastMessage(string $message): void
+    {
+        foreach($this->members as $member) if(!is_null($member)) $member->sendMessage($message);
     }
 
     public function promote(Session $member): bool
@@ -84,14 +90,14 @@ class Party
             if(strcmp($this->officer->getName(), $member->getName()))
             {
                 $this->demote($this->officer);
+                $this->officer->sendMessage("[Party] You've been demoted to Member!");
                 return $this->promote($member);
             }
             return false;
         }
         else
         {
-            $role = new PartyRole("officer");
-            $member->setPartyRole($role);
+            $member->setPartyRole(PartyManager::$roles["officer"]);
             $this->officer = $member;
             return true;
         }
@@ -101,19 +107,36 @@ class Party
     {
         if(!is_null($this->officer))
         {
-            $role = new PartyRole("member");
-            $member->setPartyRole($role);
+            $member->setPartyRole(PartyManager::$roles["member"]);
             $this->officer = null;
         }
     }
 
+    public function transferOwnership(Session|string $member): void
+    {
+        $this->leader->setPartyRole(PartyManager::$roles["member"]);
+        $this->leader = $member;
+        $member->setPartyRole(PartyManager::$roles["leader"]);
+    }
+
     public function kick(Session $member): bool
     {
+        if(in_array($member, $this->members))
+        {
+            if(strcmp($member->getPartyRole()->getRoleName(), "officer")) $this->officer = null;
+            $this->members[array_search($member, $this->members)] = null;
+            --$this->memberCount;
+            $member->removeFromParty("[Party] You were kicked from " . $this->leader->getName() . "'s party.");
+            $member->setCurrentChat(Constants::CHAT_GLOBAL);
+            return true;
+        }
         return false;
     }
 
     public function disband(): bool
     {
-        return false;
+        foreach($this->members as $member) $member->removeFromParty("disband");
+        PartyManager::removeParty($this);
+        return true; //always true for now
     }
 }

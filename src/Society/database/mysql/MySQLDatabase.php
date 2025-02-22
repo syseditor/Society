@@ -58,8 +58,8 @@ class MySQLDatabase extends Database
         $createDb = 'CREATE DATABASE ' . self::$dbName . ';'; #Requires database creation privileges
 
         # Table-based queries
-        $checkFriend = 'SELECT PlayerId FROM Friends;'; #"SELECT EXISTS (SELECT 'Friends' FROM information_schema.tables);";
-        $checkGuild = 'SELECT PlayerId FROM Guilds;'; #"SELECT EXISTS (SELECT 'Guilds' FROM information_schema.tables);";
+        $checkFriend = 'SELECT PlayerId FROM Friends;';
+        $checkGuild = 'SELECT PlayerId FROM Guilds;';
         $checkGuildInfo = 'SELECT GuildName FROM GuildsInfo;';
         $createFriend = "CREATE TABLE Friends (PlayerId varchar(255) NOT NULL , FriendOne varchar(255), FriendTwo varchar(255), FriendThree varchar(255), FriendFour varchar(255), FriendFive varchar(255), FriendSix varchar(255), FriendSeven varchar(255), FriendEight varchar(255), FriendNine varchar(255), FriendTen varchar(255), PRIMARY KEY (PlayerId));";
         $createGuild = "CREATE TABLE Guilds (PlayerId varchar(255) NOT NULL, GuildName varchar(255), GuildRole varchar(255), PRIMARY KEY (PlayerId));";
@@ -253,7 +253,8 @@ class MySQLDatabase extends Database
             if (empty($results))
             {
                 mysqli_query(self::$conn, 'SIGNAL SQLSTATE "40000" SET MESSAGE_TEXT = "Player\'s friendlist ('.$name.') does not exist (error during register?)";');
-            } else
+            }
+            else
             {
                 foreach ($results as $assoc => $result)
                 {

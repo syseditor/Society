@@ -30,7 +30,7 @@ class PartyRole
         }
     }
 
-    public function getTitleName(): string
+    public function getRoleName(): string
     {
         return $this->title;
     }

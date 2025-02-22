@@ -10,17 +10,35 @@ class PartyManager
     public static array $rolePermissions = [
         "leader" => [
             "canKick" => true,
-            "canInvite" => true
+            "canInvite" => true,
+            "canDisband" => true
         ],
         "officer" => [
-            "canKick" => false,
-            "canInvite" => true
+            "canKick" => true,
+            "canInvite" => true,
+            "canDisband" => false
         ],
         "member" => [
             "canKick" => false,
-            "canInvite" => false
+            "canInvite" => false,
+            "canDisband" => false
         ]
     ];
+    public static array $roles = [];
+
+    public function __construct()
+    {
+        self::$roles = array(
+            "member" => new PartyRole("member"),
+            "officer" => new PartyRole("officer"),
+            "leader" => new PartyRole("leader")
+        );
+    }
+
+    public static function initClass(): self
+    {
+        return new static();
+    }
 
     public static function getParties(): array
     {
@@ -33,7 +51,7 @@ class PartyManager
         return self::$parties[$leader];
     }
 
-    public static function addParty(Party $party): bool
+    public static function registerParty(Party $party): bool
     {
         $leader = $party->getLeader()->getName();
         if(array_key_exists($leader, self::$parties))
@@ -56,5 +74,6 @@ class PartyManager
     {
         $leader = $party->getLeader()->getName();
         self::$parties[$leader] = null;
+        unset($party);
     }
 }

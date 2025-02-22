@@ -8,15 +8,18 @@ use Society\commands\friends\utils\FriendInvitation;
 use Society\database\mysql\MySQLDatabase;
 use Society\party\Party;
 use Society\party\PartyRole;
+use Society\party\PartyInvitation;
 use Society\guild\Guild;
 use Society\guild\GuildRole;
 use Society\utils\Utils;
+use Society\utils\Constants;
 
 class Session
 {
     private Player $player;
     private ?Party $party;
     private ?PartyRole $partyRole;
+    private array $partyInvites = [];
     private ?Guild $guild;
     private ?GuildRole $guildRole;
     private bool $isOnParty;
@@ -24,6 +27,7 @@ class Session
     private array $friendlist = [];
     private array $friendInvitesSent = [];
     private array $friendInvitesReceived = [];
+    private int $currentChat;
 
     public function __construct(Player $player) #DAMN CHECK THE DAMN GUILD
     {
@@ -34,6 +38,7 @@ class Session
         $this->guildRole = null;
         $this->isOnParty = false;
         $this->isOnGuild = !is_null($this->guild); #ALWAYS FALSE DUE TO VARIABLE DECLARATION, PRIOR TO CHANGE
+        $this->currentChat = Constants::CHAT_GLOBAL;
     }
 
     public function getPlayer(): Player
@@ -54,6 +59,11 @@ class Session
     public function getPartyRole(): ?PartyRole
     {
         return $this->partyRole;
+    }
+
+    public function getPartyInvites(): array
+    {
+        return $this->partyInvites;
     }
 
     public function getGuild(): ?Guild
@@ -79,6 +89,11 @@ class Session
     public function getFriendInvitesReceived(): array
     {
         return $this->friendInvitesReceived;
+    }
+
+    public function getCurrentChat(): int
+    {
+        return $this->currentChat;
     }
 
     public function checkAvailability(string $option): bool
@@ -110,9 +125,24 @@ class Session
         //TODO: start building it ig
     }
 
-    public function setPartyRole(PartyRole $role): void
+    public function setParty(?Party $party): void
+    {
+        $this->party = $party;
+    }
+
+    public function setPartyRole(?PartyRole $role): void
     {
         $this->partyRole = $role;
+    }
+
+    public function hasPartyPermission(string $permission): ?bool
+    {
+        return $this->checkAvailability("party") ? $this->getPartyRole()->getPermissions()[$permission] : null;
+    }
+
+    public function setCurrentChat(int $chatId): void
+    {
+        $this->currentChat = $chatId;
     }
 
     public function addToGuild(Guild $guild): void
@@ -150,9 +180,12 @@ class Session
         }
     }
 
-    public function removeFromParty(): void
+    public function removeFromParty(string $message): void
     {
-        //TODO: start building it ig
+        $this->partyRole = null;
+        $this->party = null;
+        $this->sendMessage($message);
+        $this->setCurrentChat(Constants::CHAT_GLOBAL);
     }
 
     public function removeFromGuild(): void
@@ -216,6 +249,21 @@ class Session
                 }
                 break;
         }
+    }
+
+    public function receivePartyInvitation(PartyInvitation $invitation): void
+    {
+        $sender = $invitation->getInviter();
+        $party = $invitation->getParty();
+        $leader = $party->getLeader()->getName();
+
+        $this->partyInvites[$leader] = $invitation;
+        $this->sendMessage("[Party] You were invited by " . $sender->getName() . " to join their party! Type \"/party accept " . $leader . "\" to join their party!");
+    }
+
+    public function removePartyInvitation(string $partyName): void
+    {
+        unset($this->partyInvites[$partyName]);
     }
 
     public function sendMessage(string $message): void

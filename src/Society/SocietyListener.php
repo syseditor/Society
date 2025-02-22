@@ -5,7 +5,11 @@ namespace Society;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerLoginEvent;
 use pocketmine\event\player\PlayerQuitEvent;
+use pocketmine\event\player\PlayerChatEvent;
+
+use pocketmine\utils\TextFormat;
 use Society\session\SessionManager;
+use Society\utils\Utils;
 
 class SocietyListener implements Listener
 {
@@ -26,5 +30,24 @@ class SocietyListener implements Listener
         $session = SessionManager::getSessionByName($name);
         SessionManager::closeSession($session);
         Society::getInstance()->getLogger()->notice("[~] Session closed: $name");
+    }
+
+    public function onChat(PlayerChatEvent $event): void
+    {
+        $session = SessionManager::getSessionByName($event->getPlayer()->getName());
+        $currentChat = $session->getCurrentChat();
+
+        if($currentChat === 1)
+        {
+            $event->cancel();
+            $message = $event->getMessage();
+            $session->getParty()->broadcastMessage(TextFormat::GRAY . "[Party Chat] " . Utils::roleToColor($session->getPartyRole()) . $session->getName() . TextFormat::RESET ." >> " . $message);
+        }
+        else if($currentChat === 2)
+        {
+            $event->cancel();
+            $message = $event->getMessage();
+            $session->getParty()->broadcastMessage(TextFormat::LIGHT_PURPLE . "[Guild Chat] " . Utils::roleToColor($session->getPartyRole()) . $session->getName() . TextFormat::RESET . " >> " . $message);
+        }
     }
 }

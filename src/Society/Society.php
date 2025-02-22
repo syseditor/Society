@@ -7,8 +7,10 @@ use pocketmine\utils\SingletonTrait;
 use pocketmine\utils\Config;
 
 use Society\guild\GuildManager;
+use Society\party\PartyManager;
 use Society\database\mysql\MySQLDatabase;
 use Society\commands\friends\FriendsCommand;
+use Society\commands\party\PartyCommand;
 
 class Society extends PluginBase
 {
@@ -44,7 +46,8 @@ class Society extends PluginBase
     public function registerCommands(): void
     {
         $commands = [
-            new FriendsCommand()
+            new FriendsCommand(),
+            new PartyCommand()
         ];
 
         $this->getServer()->getCommandMap()->registerAll("society", $commands);
@@ -54,6 +57,7 @@ class Society extends PluginBase
     {
         MySQLDatabase::initClass();
         GuildManager::initClass();
+        PartyManager::initClass();
     }
 
     protected function initDatabases(): void
