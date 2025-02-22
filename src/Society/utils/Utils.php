@@ -23,17 +23,12 @@ class Utils
 
     public static function roleToColor(PartyRole|GuildRole $role): string
     {
-        switch($role->getRoleName())
-        {
-            case "leader":
-                return TextFormat::BLUE;
-            case "officer":
-                return TextFormat::RED;
-            case "member":
-                return TextFormat::GREEN;
-            case "founder":
-                return TextFormat::GOLD;
-            default: return TextFormat::BLACK;
-        }
+        return match ($role->getRoleName()) {
+            "leader" => TextFormat::BLUE,
+            "officer" => TextFormat::RED,
+            "member" => TextFormat::GREEN,
+            "founder" => TextFormat::GOLD,
+            default => TextFormat::BLACK,
+        };
     }
 }
