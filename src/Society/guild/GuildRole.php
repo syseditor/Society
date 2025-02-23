@@ -10,10 +10,16 @@ class GuildRole
     public function __construct(string $roleName, array $rolePermissions)
     {
         $this->roleName = $roleName;
+        $this->rolePermissions = $rolePermissions;
     }
 
     public function getRoleName(): string
     {
         return $this->roleName;
+    }
+
+    public function getRolePermissions(): array
+    {
+        return $this->rolePermissions;
     }
 }
