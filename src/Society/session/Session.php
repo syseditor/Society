@@ -120,14 +120,10 @@ class Session
         $this->guildRole = $role;
     }
 
-    public function addToParty(Party $party): void
-    {
-        //TODO: start building it ig
-    }
-
     public function setParty(?Party $party): void
     {
         $this->party = $party;
+        $this->isOnParty = !is_null($party);
     }
 
     public function setPartyRole(?PartyRole $role): void
@@ -184,6 +180,7 @@ class Session
     {
         $this->partyRole = null;
         $this->party = null;
+        $this->isOnParty = false;
         $this->sendMessage($message);
         $this->setCurrentChat(Constants::CHAT_GLOBAL);
     }
