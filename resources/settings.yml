@@ -1,5 +1,5 @@
 #MySQL Settings
-servername: 'localhost'
-username: 'syseditor'
-password: 'Tic4589toc#12'
-databaseName: 'Society'
+servername: "your database server's name"
+username: 'your username'
+password: 'your password'
+databaseName: "your database's name"
