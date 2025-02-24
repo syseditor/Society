@@ -35,7 +35,7 @@ class PartyRole
         return $this->title;
     }
 
-    public function getPermissions(): array
+    public function getRolePermissions(): array
     {
         return $this->permissions;
     }

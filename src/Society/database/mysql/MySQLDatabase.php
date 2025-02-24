@@ -63,7 +63,7 @@ class MySQLDatabase extends Database
         $checkGuildInfo = 'SELECT GuildName FROM GuildsInfo;';
         $createFriend = "CREATE TABLE Friends (PlayerId varchar(255) NOT NULL , FriendOne varchar(255), FriendTwo varchar(255), FriendThree varchar(255), FriendFour varchar(255), FriendFive varchar(255), FriendSix varchar(255), FriendSeven varchar(255), FriendEight varchar(255), FriendNine varchar(255), FriendTen varchar(255), PRIMARY KEY (PlayerId));";
         $createGuild = "CREATE TABLE Guilds (PlayerId varchar(255) NOT NULL, GuildName varchar(255), GuildRole varchar(255), PRIMARY KEY (PlayerId));";
-        $createGuildInfo = 'CREATE TABLE GuildsInfo (GuildName varchar(255) NOT NULL, GuildLeader varchar(255) NOT NULL, GuildLevel int DEFAULT 0, GuildExp int DEFAULT 0);';
+        $createGuildInfo = 'CREATE TABLE GuildsInfo (GuildName varchar(255) NOT NULL, GuildLevel int DEFAULT 0, GuildExp int DEFAULT 0, GuildMaster varchar(255) NOT NULL);';
 
         # Checking if the database exists
         try
@@ -249,16 +249,13 @@ class MySQLDatabase extends Database
         {
             $query = mysqli_query(self::$conn, $getFriends);
             $results = $query->fetch_assoc();
-            print_r($results);
-            if (empty($results))
-            {
-                mysqli_query(self::$conn, 'SIGNAL SQLSTATE "40000" SET MESSAGE_TEXT = "Player\'s friendlist ('.$name.') does not exist (error during register?)";');
-            }
+            print_r($results); //to-remove
+            if (empty($results)) mysqli_query(self::$conn, 'SIGNAL SQLSTATE "40000" SET MESSAGE_TEXT = "Player\'s friendlist ('.$name.') does not exist (error during register?)";');
             else
             {
                 foreach ($results as $assoc => $result)
                 {
-                    if ($assoc == "PlayerId") continue;
+                    if (!strcmp($assoc, "PlayerId")) continue;
                     $friendlist[] = $result;
                 }
                 print_r($friendlist);
@@ -279,15 +276,17 @@ class MySQLDatabase extends Database
             $query = mysqli_query(self::$conn, $getGuild);
             $results = $query->fetch_assoc();
             print_r($results);
-            if (empty($results))
+            if (empty($results)) mysqli_query(self::$conn, 'SIGNAL SQLSTATE "40000" SET MESSAGE_TEXT = "Player\'s Guild field ('.$name.') does not exist (error during register?)";');
+            else
             {
-                mysqli_query(self::$conn, 'SIGNAL SQLSTATE "40000" SET MESSAGE_TEXT = "Player\'s Guild field ('.$name.') does not exist (error during register?)";');
-            } else
-            {
-                $guild = $results["GuildName"]; echo $guild;
-                $role = $results["GuildRole"]; echo $role;
-                $session->setGuild(GuildManager::getGuildByName($guild));
-                $session->setGuildRole(GuildManager::getGuildRoleByName($role));
+                $guildName = strtolower($results["GuildName"]);
+                $guild = GuildManager::getGuildByName($guildName); //lowercase check
+
+                $roleName = $results["GuildRole"];
+                $role = GuildManager::getGuildRoleByName($roleName); //lowercase check
+
+                $session->setGuild($guild);
+                $session->setGuildRole($role);
             }
         }
         catch (mysqli_sql_exception)
@@ -301,7 +300,10 @@ class MySQLDatabase extends Database
 
     public static function registerGuild(Guild $guild): void
     {
-        //TODO
+        $name = $guild->getName();
+        $level = $guild->getLevel();
+        $exp = $guild->getExperiencePoints();
+        $guildmaster = $guild->getGuildmaster();
     }
 
     public static function loadGuilds(): void

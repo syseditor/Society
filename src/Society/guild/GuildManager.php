@@ -53,13 +53,19 @@ class GuildManager
         return self::$guilds;
     }
 
-    public static function getGuildByName(string $name): ?Guild
+    public static function getGuildByName(?string $name): ?Guild
     {
-        return self::$guilds[$name];
+        return is_null($name) ? null : self::$guilds[$name];
     }
 
     public static function getGuildRoleByName(string $name): GuildRole
     {
         return self::$guildRoles[$name];
+    }
+
+    public static function registerGuild(Guild $guild): void
+    {
+        $guildName = strtolower($guild->getName());
+        self::$guilds[$guildName] = $guild;
     }
 }

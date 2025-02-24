@@ -133,7 +133,12 @@ class Session
 
     public function hasPartyPermission(string $permission): ?bool
     {
-        return $this->checkAvailability("party") ? $this->getPartyRole()->getPermissions()[$permission] : null;
+        return $this->checkAvailability("party") ? $this->getPartyRole()->getRolePermissions()[$permission] : null;
+    }
+
+    public function hasGuildPermission(string $permission): ?bool
+    {
+        return $this->checkAvailability("guild") ? $this->getGuildRole()->getRolePermissions()[$permission] : null;
     }
 
     public function setCurrentChat(int $chatId): void
