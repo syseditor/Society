@@ -1,5 +1,5 @@
 # Society
-Society is a Pocketmine plugin built to deliver servers with a working... society - making friends, creating parties and guilds hasn't been easier!
+Society is a Pocketmine plugin built to deliver servers a working... society; making friends, creating parties and guilds hasn't been easier!
 
 # Features
 * Friends system (under development)
