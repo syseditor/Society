@@ -7,6 +7,9 @@ Society is a Pocketmine plugin built to deliver servers a working... society; ma
 * Guild system (under heavy development)
 * MySQL support for Friends and Guilds, while Parties are saved locally.
 
+# How to use
+Well... you can't right now. To be updated when the first version of the plugin is ready.
+
 # Contributions/Collaborations
 NOTE: This plugin is under heavy development - most of the "supposed" features are NOT meant to work.\
 Contributions are always welcome. Please open an Issue for any bug you come across.
