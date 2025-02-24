@@ -152,8 +152,7 @@ class Session
         $id = $session->getPlayer()->getUniqueId()->getInteger();
 
         $friendList = $this->getFriendList();
-        $i = 0;
-        while(!is_null($friendList[$i]) && $i < 10) $i++;
+        $i = array_search(null, $friendList);
 
         $slot = Utils::$friendSlotPositions[$i];
 
@@ -266,5 +265,10 @@ class Session
     public function sendMessage(string $message): void
     {
         $this->player->sendMessage($message);
+    }
+
+    public function hasPermission(string $permission): bool
+    {
+        return $this->player->hasPermission($permission);
     }
 }
