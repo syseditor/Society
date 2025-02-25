@@ -24,7 +24,7 @@ class Utils
     public static function roleToColor(PartyRole|GuildRole $role): string
     {
         return match ($role->getRoleName()) {
-            "leader" || "coleader" => TextFormat::BLUE,
+            "leader", "coleader" => TextFormat::BLUE,
             "officer" => TextFormat::RED,
             "member" => TextFormat::GREEN,
             "guildmaster" => TextFormat::GOLD,
