@@ -63,7 +63,7 @@ class MySQLDatabase extends Database
         $checkGuildInfo = 'SELECT GuildName FROM GuildsInfo;';
         $createFriend = "CREATE TABLE Friends (PlayerId varchar(255) NOT NULL , FriendOne varchar(255), FriendTwo varchar(255), FriendThree varchar(255), FriendFour varchar(255), FriendFive varchar(255), FriendSix varchar(255), FriendSeven varchar(255), FriendEight varchar(255), FriendNine varchar(255), FriendTen varchar(255), PRIMARY KEY (PlayerId));";
         $createGuild = "CREATE TABLE Guilds (PlayerId varchar(255) NOT NULL, GuildName varchar(255), GuildRole varchar(255), PRIMARY KEY (PlayerId));";
-        $createGuildInfo = 'CREATE TABLE GuildsInfo (GuildName varchar(255) NOT NULL, GuildLevel int DEFAULT 0, GuildExp int DEFAULT 0, GuildMaster varchar(255) NOT NULL);';
+        $createGuildInfo = 'CREATE TABLE GuildsInfo (GuildName varchar(255) NOT NULL, GuildLevel int DEFAULT 1, GuildExp int DEFAULT 0, MaxAllowedMembers int DEFAULT 50, PRIMARY KEY (GuildName));';
 
         # Checking if the database exists
         try
@@ -163,15 +163,14 @@ class MySQLDatabase extends Database
     public static function registerPlayer(Session $session): void
     {
         $name = $session->getPlayer()->getName();
-        $id = $session->getPlayer()->getUniqueId()->getInteger();
 
         # Checks
-        $checkPlayerInFriends = 'SELECT CASE WHEN EXISTS (SELECT PlayerId FROM Friends WHERE PlayerId = "'.$id.'") THEN TRUE ELSE FALSE END;';
-        $checkPlayerInGuilds = 'SELECT CASE WHEN EXISTS (SELECT PlayerId FROM Guilds WHERE PlayerId = "'.$id.'") THEN TRUE ELSE FALSE END;';
+        $checkPlayerInFriends = 'SELECT CASE WHEN EXISTS (SELECT PlayerId FROM Friends WHERE PlayerId = "'.$name.'") THEN TRUE ELSE FALSE END;';
+        $checkPlayerInGuilds = 'SELECT CASE WHEN EXISTS (SELECT PlayerId FROM Guilds WHERE PlayerId = "'.$name.'") THEN TRUE ELSE FALSE END;';
 
         # Registers
-        $registerInFriends = 'INSERT INTO Friends (PlayerId) VALUES ("'.$id.'");';
-        $registerInGuilds = 'INSERT INTO Guilds (PlayerId) VALUES ("'.$id.'");';
+        $registerInFriends = 'INSERT INTO Friends (PlayerId) VALUES ("'.$name.'");';
+        $registerInGuilds = 'INSERT INTO Guilds (PlayerId) VALUES ("'.$name.'");';
 
         # First the Friends table...
         try
@@ -179,9 +178,7 @@ class MySQLDatabase extends Database
             $query = mysqli_query(self::$conn, $checkPlayerInFriends);
             $results = $query->fetch_row();
             foreach ($results as $index => $result) { # The array has only one set of values-keys, so we don't really care about the code's structure
-                if ($result == 0) {
-                    mysqli_query(self::$conn, 'SIGNAL SQLSTATE "40000" SET MESSAGE_TEXT = "Player '.$name.' is not registered in Friends table.";');
-                }
+                if ($result == 0) mysqli_query(self::$conn, 'SIGNAL SQLSTATE "40000" SET MESSAGE_TEXT = "Player '.$name.' is not registered in Friends table.";');
             }
         }
         catch (mysqli_sql_exception)
@@ -208,9 +205,7 @@ class MySQLDatabase extends Database
             $query = mysqli_query(self::$conn, $checkPlayerInGuilds);
             $results = $query->fetch_row();
             foreach ($results as $index => $result) { # The array has only one set of values-keys, so we don't really care about the code's structure
-                if ($result == 0) {
-                    mysqli_query(self::$conn, 'SIGNAL SQLSTATE "40000" SET MESSAGE_TEXT = "Player '.$name.' is not registered in Guilds table.";');
-                }
+                if ($result == 0) mysqli_query(self::$conn, 'SIGNAL SQLSTATE "40000" SET MESSAGE_TEXT = "Player '.$name.' is not registered in Guilds table.";');
             }
         }
         catch (mysqli_sql_exception)
@@ -231,25 +226,23 @@ class MySQLDatabase extends Database
             }
         }
 
-        self::$logger->notice('[~] Player '.$name.' with UUID "'.$id.'" is properly registered in the Database.');
+        self::$logger->notice('[~] Player '.$name.' is properly registered in the Database.');
     }
 
     public static function loadPlayer(Session $session): void
     {
         $name = $session->getPlayer()->getName();
-        $id = $session->getPlayer()->getUniqueId()->getInteger();
         $friendlist = [];
 
         # Getting info
-        $getFriends = 'SELECT DISTINCT * FROM Friends WHERE PlayerId = "'.$id.'";';
-        $getGuild = 'SELECT DISTINCT * FROM Guilds WHERE PlayerId = "'.$id.'";';
+        $getFriends = 'SELECT DISTINCT * FROM Friends WHERE PlayerId = "'.$name.'";';
+        $getGuild = 'SELECT DISTINCT * FROM Guilds WHERE PlayerId = "'.$name.'";';
 
         # Get the friends
         try
         {
             $query = mysqli_query(self::$conn, $getFriends);
             $results = $query->fetch_assoc();
-            print_r($results); //to-remove
             if (empty($results)) mysqli_query(self::$conn, 'SIGNAL SQLSTATE "40000" SET MESSAGE_TEXT = "Player\'s friendlist ('.$name.') does not exist (error during register?)";');
             else
             {
@@ -275,11 +268,10 @@ class MySQLDatabase extends Database
         {
             $query = mysqli_query(self::$conn, $getGuild);
             $results = $query->fetch_assoc();
-            print_r($results);
             if (empty($results)) mysqli_query(self::$conn, 'SIGNAL SQLSTATE "40000" SET MESSAGE_TEXT = "Player\'s Guild field ('.$name.') does not exist (error during register?)";');
             else
             {
-                $guildName = strtolower($results["GuildName"]);
+                $guildName = $results["GuildName"];
                 $guild = GuildManager::getGuildByName($guildName); //lowercase check
 
                 $roleName = $results["GuildRole"];
@@ -303,15 +295,99 @@ class MySQLDatabase extends Database
         $name = $guild->getName();
         $level = $guild->getLevel();
         $exp = $guild->getExperiencePoints();
-        $guildmaster = $guild->getGuildmaster();
+        $maxmembers = $guild->getMaxMembersAllowed();
+
+        $checkQuery = 'SELECT CASE WHEN EXISTS (SELECT GuildName FROM GuildsInfo WHERE GuildName = "'.$name.'") THEN TRUE ELSE FALSE END;';
+        $registerQuery = 'INSERT INTO GuildsInfo VALUES ("'.$name.'", '.$level.', '.$exp.', '.$maxmembers.');';
+
+        try
+        {
+            $query = mysqli_query(self::$conn, $checkQuery);
+            $results = $query->fetch_row();
+            foreach($results as $index => $result)
+            {
+                if($result == 0) mysqli_query(self::$conn, 'SIGNAL SQLSTATE "40000" SET MESSAGE_TEXT = "Guild '.$name.' is not registered in GuildsInfo table.";');
+            }
+        }
+        catch (mysqli_sql_exception)
+        {
+            self::$logger->error('[~] Error: '.mysqli_error(self::$conn));
+            self::$logger->warning('[~] '.$name.' guild is not registered properly in the Database (GuildsInfo table). Quickly registering...');
+            try
+            {
+                mysqli_query(self::$conn, $registerQuery);
+                self::$logger->notice('[~] Registered Guild '.$name.' in the Database (GuildsInfo table).');
+            }
+            catch (mysqli_sql_exception)
+            {
+                self::$logger->error('[~] Error: '.mysqli_error(self::$conn));
+                self::$logger->error('[~] Unable to register Guild '.$name.' into GuildsInfo table.');
+                self::$logger->emergency('[~] Forcing server shutdown to prevent further damage...');
+                Society::getInstance()->getServer()->forceShutdown();
+            }
+        }
     }
 
     public static function loadGuilds(): void
     {
-        //TODO
+        $loadQuery = 'SELECT DISTINCT * FROM GuildsInfo;';
+
+        try
+        {
+            $query = mysqli_query(self::$conn, $loadQuery);
+            $results = $query->fetch_all();
+            $total_guilds_loaded = 0;
+            foreach($results as $index => $informationArray)
+            {
+                $guildName = $informationArray[0];
+                $level = $informationArray[1];
+                $exp = $informationArray[2];
+                $maxmembers = $informationArray[3];
+                $members = array(
+                    'guildmaster' => "",
+                    'coleader' => array(),
+                    'officer' => array(),
+                    'member' => array()
+                );
+                $selectMembersQuery = 'SELECT DISTINCT PlayerId, GuildRole FROM Guilds WHERE GuildName = "'.$guildName.'"';
+
+                try
+                {
+                    $membersQuery = mysqli_query(self::$conn, $selectMembersQuery);
+                    $membersAssoc = $membersQuery->fetch_all();
+                    foreach($membersAssoc as $i => $memberInfo)
+                    {
+                        $members[$memberInfo[1]] = $memberInfo[0];
+                    }
+                }
+                catch (mysqli_sql_exception)
+                {
+                    self::$logger->error('[~] Error: '.mysqli_error(self::$conn));
+                    self::$logger->notice('[~] Ignoring member registering process...'); //to be changed
+                }
+
+                $guild = new Guild($guildName, $members, $level, $exp, $maxmembers);
+                GuildManager::registerGuild($guild);
+                $total_guilds_loaded++;
+            }
+        }
+        catch (mysqli_sql_exception)
+        {
+            self::$logger->error('[~] Error: '.mysqli_error(self::$conn));
+            self::$logger->error('[~] Unable to load the Guilds.');
+            self::$logger->emergency('[~] Forcing server shutdown to prevent further damage...');
+            Society::getInstance()->getServer()->forceShutdown();
+        }
+
+        self::$logger->notice("[~] Successfully loaded all registered guilds (Total of $total_guilds_loaded Guilds).");
     }
 
-    public static function insert(string $table, string $column, string $info, ?Session $session = null): void
+    public static function removeGuild(Guild $guild): void
+    {
+
+    }
+
+    public static function update(string $table, string $column, string $info, ?Session $session = null): void
     {
         switch ($table){
             case 'Friends':
@@ -339,9 +415,9 @@ class MySQLDatabase extends Database
         }
     }
 
-    public static function checkFriendUniqueness(string $id, Session $session): bool
+    public static function isFriendUnique(string $id, Session $session): bool
     {
-        $id = $session->getPlayer()->getUniqueId()->getInteger();
+        $idSession = $session->getPlayer()->getUniqueId()->getInteger();
         //continue
         return false;
     }

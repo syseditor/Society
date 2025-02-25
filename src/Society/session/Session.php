@@ -164,7 +164,7 @@ class Session
         $friendList[$i] = $name;
         var_dump($friendList); //to-remove
 
-        MySQLDatabase::insert("Friends", $slot, $id, $this);
+        MySQLDatabase::update("Friends", $slot, $id, $this);
 
         $this->sendMessage("Successfully added $name to your friend list");
         if ($session->getPlayer()->isOnline()) $session->sendMessage("Successfully added ".$this->getPlayer()->getName()." to your friend list");

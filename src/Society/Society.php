@@ -32,6 +32,7 @@ class Society extends PluginBase
         $this->registerCommands();
         $this->initStaticClasses();
         $this->initDatabases();
+        MySQLDatabase::loadGuilds();
 
         $this->getLogger()->notice("[~] Plugin is on!");
     }

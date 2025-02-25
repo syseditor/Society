@@ -58,9 +58,9 @@ class GuildManager
         return is_null($name) ? null : self::$guilds[$name];
     }
 
-    public static function getGuildRoleByName(string $name): GuildRole
+    public static function getGuildRoleByName(?string $name): ?GuildRole
     {
-        return self::$guildRoles[$name];
+        return is_null($name) ? null : self::$guildRoles[$name];
     }
 
     public static function registerGuild(Guild $guild): void

@@ -8,14 +8,13 @@ use Society\session\SessionManager;
 class Guild
 {
     private string $name;
-    private string $guildmaster; //required
     private int $level;
     private int $exp;
     private int $memberCount;
     private int $maxMembersAllowed;
     private array $members;
 
-    public function __construct(string $name, string $guildmaster, array $members, int $level = 1, int $exp = 0, int $maxAllowedMembers = 50)
+    public function __construct(string $name, array $members, int $level = 1, int $exp = 0, int $maxAllowedMembers = 50)
     {
         $this->name = $name;
         $this->level = $level;
@@ -28,11 +27,6 @@ class Guild
     public function getName(): string
     {
         return $this->name;
-    }
-
-    public function getGuildmaster(): string
-    {
-        return $this->guildmaster;
     }
 
     public function getLevel(): int
@@ -58,11 +52,6 @@ class Guild
     public function getMembers(): array
     {
         return $this->members;
-    }
-
-    public function setGuildmaster(string $name): void //for ownership transfers (mostly)
-    {
-        $this->guildmaster = $name;
     }
 
     public function setLevel(int $level): void
