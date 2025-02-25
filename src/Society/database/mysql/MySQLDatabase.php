@@ -384,17 +384,30 @@ class MySQLDatabase extends Database
 
     public static function removeGuild(Guild $guild): void
     {
+        $name = $guild->getName();
+        $members = $guild->getMembers();
+        $deleteQuery = 'DELETE FROM GuildsInfo WHERE GuildName = "'.$name.'"';
+        try
+        {
+            foreach($members as $role => $playerName)
+            {
+                self::update('Guilds', 'GuildName', $playerName, null);
+                self::update('Guilds', 'GuildRole', $playerName, null);
+            }
+        }
+        catch (mysqli_sql_exception)
+        {
 
+        }
     }
 
-    public static function update(string $table, string $column, string $info, ?Session $session = null): void
+    public static function update(string $table, string $column, string $condition, ?string $info): void
     {
         switch ($table){
             case 'Friends':
             case 'Guilds':
-                if (is_null($session)) throw new RuntimeException("[~] Couldn't update the Database: Session is null");
-                $id = $session->getPlayer()->getUniqueId()->getInteger();
-                $query = 'UPDATE '.$table.' SET '.$column.' = "'.$info.'" WHERE PlayerId = "'.$id.'";';
+                if (!is_null($info)) $query = 'UPDATE '.$table.' SET '.$column.' = "'.$info.'" WHERE PlayerId = "'.$condition.'";';
+                else $query = 'UPDATE '.$table.' SET '.$column.' = '.$info.' WHERE PlayerId = "'.$condition.'";';
                 try
                 {
                       mysqli_query(self::$conn, $query);

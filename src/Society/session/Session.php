@@ -154,7 +154,6 @@ class Session
     public function addFriend(Session $session, string $type): void
     {
         $name = $session->getPlayer()->getName();
-        $id = $session->getPlayer()->getUniqueId()->getInteger();
 
         $friendList = $this->getFriendList();
         $i = array_search(null, $friendList);
@@ -164,7 +163,7 @@ class Session
         $friendList[$i] = $name;
         var_dump($friendList); //to-remove
 
-        MySQLDatabase::update("Friends", $slot, $id, $this);
+        MySQLDatabase::update("Friends", $slot, $this->getName(), $name);
 
         $this->sendMessage("Successfully added $name to your friend list");
         if ($session->getPlayer()->isOnline()) $session->sendMessage("Successfully added ".$this->getPlayer()->getName()." to your friend list");
