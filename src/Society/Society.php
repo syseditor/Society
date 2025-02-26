@@ -11,6 +11,7 @@ use Society\party\PartyManager;
 use Society\database\mysql\MySQLDatabase;
 use Society\commands\friends\FriendsCommand;
 use Society\commands\party\PartyCommand;
+use Society\commands\guild\GuildCommand;
 
 class Society extends PluginBase
 {
@@ -48,7 +49,8 @@ class Society extends PluginBase
     {
         $commands = [
             new FriendsCommand(),
-            new PartyCommand()
+            new PartyCommand(),
+            new GuildCommand()
         ];
 
         $this->getServer()->getCommandMap()->registerAll("society", $commands);

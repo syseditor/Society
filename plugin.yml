@@ -19,6 +19,15 @@ permissions:
   society.guild:
     description: "Default permission to use the /guild command"
     default: true
+  society.guild.hundred:
+    description: "100 members per guild"
+    default: op
+  society.guild.twohundred:
+    description: "200 members per guild"
+    default: op
+  society.guild.create:
+    description: "Permission to create a guild"
+    default: op
   society.party.ten:
     description: "Ten members per party"
     default: op

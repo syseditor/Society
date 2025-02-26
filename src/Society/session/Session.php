@@ -110,11 +110,6 @@ class Session
         $this->friendlist = $friendlist;
     }
 
-    public function setGuild(?Guild $guild): void
-    {
-        $this->guild = $guild;
-    }
-
     public function setGuildRole(?GuildRole $role): void
     {
         $this->guildRole = $role;
@@ -146,10 +141,25 @@ class Session
         $this->currentChat = $chatId;
     }
 
-    public function addToGuild(?Guild $guild): void
+    public function setGuild(?Guild $guild): void
     {
         $this->guild = $guild;
         $this->isOnGuild = !is_null($guild);
+    }
+
+    public function updateGuild(?Guild $guild): void
+    {
+        $this->setGuild($guild);
+
+        $name = is_null($guild) ? null : $guild->getName();
+        $role = is_null($this->getGuildRole()) ? null : $this->getGuildRole()->getRoleName();
+        MySQLDatabase::update("Guilds", "GuildName", $this->getName(), $name);
+        MySQLDatabase::update("Guilds", "GuildRole", $this->getName(), $role);
+    }
+
+    public function canCreateGuild(): bool
+    {
+        return $this->hasPermission("society.guild.create");
     }
 
     public function addFriend(Session $session, string $type): void

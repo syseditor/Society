@@ -2,6 +2,8 @@
 
 namespace Society\guild;
 
+use Society\database\mysql\MySQLDatabase;
+
 class GuildManager
 {
     private static array $guilds = [];
@@ -67,5 +69,17 @@ class GuildManager
     {
         $guildName = strtolower($guild->getName());
         self::$guilds[$guildName] = $guild;
+    }
+
+    public static function removeGuild(Guild $guild): void
+    {
+        MySQLDatabase::removeGuild($guild);
+        unset(self::$guilds[strtolower($guild->getName())]);
+    }
+
+    public static function guildExists(string $name): bool
+    {
+        $name = strtolower($name);
+        return array_key_exists($name, self::$guilds);
     }
 }

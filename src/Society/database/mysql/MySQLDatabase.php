@@ -246,7 +246,6 @@ class MySQLDatabase extends Database
                     if (!strcmp($assoc, "PlayerId")) continue;
                     $friendlist[] = $result;
                 }
-                print_r($friendlist);
                 $session->setFriendlist($friendlist);
             }
         }
@@ -269,8 +268,8 @@ class MySQLDatabase extends Database
                 $roleName = $results["GuildRole"];
                 $role = GuildManager::getGuildRoleByName($roleName); //lowercase check
 
-                $session->setGuild($guild);
                 $session->setGuildRole($role);
+                $session->setGuild($guild);
             }
         }
         catch (mysqli_sql_exception)
@@ -385,27 +384,25 @@ class MySQLDatabase extends Database
         }
     }
 
-    public static function update(string $table, string $column, string $condition, ?string $info): void
+    public static function update(string $table, string $column, string $condition, string|int|null $info): void
     {
-        switch ($table){
-            case 'Friends':
-            case 'Guilds':
-                if (!is_null($info)) $query = 'UPDATE '.$table.' SET '.$column.' = "'.$info.'" WHERE PlayerId = "'.$condition.'";';
-                else $query = 'UPDATE '.$table.' SET '.$column.' = '.$info.' WHERE PlayerId = "'.$condition.'";';
-                try
-                {
-                      mysqli_query(self::$conn, $query);
-                      self::$logger->notice("[~] Successfully updated database"); //TO BE REMOVED
-                }
-                catch (mysqli_sql_exception)
-                {
-                    self::critical_error('[~] Unable to update the Database.');
-                }
-                break;
-            case 'GuildsInfo':
-                break;
-            default:
-                throw new RuntimeException("[~] Couldn't update the Database: Table out of range");
+        $separator = match ($table) {
+            'Friends', 'Guilds' => 'PlayerId',
+            'GuildsInfo' => 'GuildName',
+            default => throw new RuntimeException("[~] Couldn't update the Database: Table out of range"),
+        };
+
+        if (is_null($info)) $query = 'UPDATE '.$table.' SET '.$column.' = NULL WHERE '.$separator.' = "'.$condition.'";';
+        else if(is_int($info)) $query = 'UPDATE '.$table.' SET '.$column.' = '.$info.' WHERE '.$separator.' = "'.$condition.'";';
+        else $query = 'UPDATE '.$table.' SET '.$column.' = "'.$info.'" WHERE '.$separator.' = "'.$condition.'";';
+        try
+        {
+            mysqli_query(self::$conn, $query);
+            self::$logger->notice("[~] Successfully updated database"); //TO BE REMOVED
+        }
+        catch (mysqli_sql_exception)
+        {
+            self::critical_error('[~] Unable to update the Database.');
         }
     }
 }

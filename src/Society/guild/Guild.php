@@ -2,6 +2,7 @@
 
 namespace Society\guild;
 
+use Society\database\mysql\MySQLDatabase;
 use Society\session\Session;
 use Society\session\SessionManager;
 
@@ -10,7 +11,6 @@ class Guild
     private string $name;
     private int $level;
     private int $exp;
-    private int $memberCount;
     private int $maxMembersAllowed;
     private array $members;
 
@@ -21,7 +21,6 @@ class Guild
         $this->exp = $exp;
         $this->maxMembersAllowed = $maxAllowedMembers;
         $this->members = $members;
-        $this->memberCount = count($members);
     }
 
     public function getName(): string
@@ -44,14 +43,15 @@ class Guild
         return $this->maxMembersAllowed;
     }
 
-    public function getMemberCount(): int
-    {
-        return $this->memberCount;
-    }
 
     public function getMembers(): array
     {
         return $this->members;
+    }
+
+    public function getMemberCount(): int
+    {
+        return count($this->getMembers(), 1) - 4 + 1; //4 rank titles, 1 guildmaster (it's a string, NOT A 1x1 array)
     }
 
     public function setLevel(int $level): void
@@ -67,5 +67,21 @@ class Guild
     public function setMaxMembersAllowed(int $maxMembersAllowed): void
     {
         $this->maxMembersAllowed = $maxMembersAllowed;
+    }
+
+    public function refresh(): void
+    {
+        $this->updateMaxMembersAllowed();
+    }
+
+    protected function updateMaxMembersAllowed(): void //guildmaster must be online => only called by themselves
+    {
+        $guildmaster = SessionManager::getSessionByName($this->members["guildmaster"]);
+
+        if($guildmaster->hasPermission("society.guild.twohundred")) $this->setMaxMembersAllowed(200);
+        else if($guildmaster->hasPermission("society.guild.hundred")) $this->setMaxMembersAllowed(100);
+        else $this->setMaxMembersAllowed(50);
+
+        MySQLDatabase::update("GuildsInfo", "MaxAllowedMembers", $this->getName(), $this->maxMembersAllowed);
     }
 }
