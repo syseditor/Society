@@ -25,8 +25,8 @@ class Party
 
     protected function calculateMaxMembers(): void
     {
-        if($this->leader->getPlayer()->hasPermission(Constants::PARTY_MAX_MEMBERS_TEN)) $this->maxPartyMembersAllowed = 10;
-        else if($this->leader->getPlayer()->hasPermission(Constants::PARTY_MAX_MEMBERS_TWENTY)) $this->maxPartyMembersAllowed = 20;
+        if($this->leader->getPlayer()->hasPermission(Constants::PARTY_MAX_MEMBERS_TWENTY)) $this->maxPartyMembersAllowed = 20;
+        else if($this->leader->getPlayer()->hasPermission(Constants::PARTY_MAX_MEMBERS_TEN)) $this->maxPartyMembersAllowed = 10;
         else $this->maxPartyMembersAllowed = 5;
     }
 

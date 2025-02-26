@@ -16,9 +16,12 @@ permissions:
   society.party:
     description: "Default permission to use the /party command"
     default: true
+  society.guild:
+    description: "Default permission to use the /guild command"
+    default: true
   society.party.ten:
     description: "Ten members per party"
-    default: false
+    default: op
   society.party.twenty:
     description: "Twenty members per party"
-    default: false
+    default: op
