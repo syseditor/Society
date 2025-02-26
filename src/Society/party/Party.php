@@ -61,7 +61,7 @@ class Party
         {
             if(in_array(null, $this->members)) $this->members[array_search(null, $this->members)] = $member;
             else $this->members[] = $member;
-            $member->setParty($this);
+            $member->addToParty($this);
             $member->setPartyRole(PartyManager::$roles["member"]);
             ++$this->memberCount;
             return true;

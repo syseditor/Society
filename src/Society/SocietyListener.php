@@ -9,7 +9,9 @@ use pocketmine\event\player\PlayerChatEvent;
 
 use pocketmine\utils\TextFormat;
 use Society\session\SessionManager;
+use Society\utils\Constants;
 use Society\utils\Utils;
+use const Grpc\CALL_ERROR_NOT_ON_SERVER;
 
 class SocietyListener implements Listener
 {
@@ -37,13 +39,13 @@ class SocietyListener implements Listener
         $session = SessionManager::getSessionByName($event->getPlayer()->getName());
         $currentChat = $session->getCurrentChat();
 
-        if($currentChat === 1)
+        if($currentChat === Constants::CHAT_PARTY)
         {
             $event->cancel();
             $message = $event->getMessage();
             $session->getParty()->broadcastMessage(TextFormat::GRAY . "[Party Chat] " . Utils::roleToColor($session->getPartyRole()) . $session->getName() . TextFormat::RESET ." >> " . $message);
         }
-        else if($currentChat === 2)
+        else if($currentChat === Constants::CHAT_GUILD)
         {
             $event->cancel();
             $message = $event->getMessage();

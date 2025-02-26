@@ -56,7 +56,7 @@ class PartyCommandArguments
         {
             $party = new Party($sender);
             $sender->setPartyRole(PartyManager::$roles["leader"]);
-            $sender->setParty($party);
+            $sender->addToParty($party);
             PartyManager::registerParty($party);
 
             $sender->sendMessage("[Party] You successfully created a party!");

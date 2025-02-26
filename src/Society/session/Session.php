@@ -120,7 +120,7 @@ class Session
         $this->guildRole = $role;
     }
 
-    public function setParty(?Party $party): void
+    public function addToParty(?Party $party): void
     {
         $this->party = $party;
         $this->isOnParty = !is_null($party);
@@ -146,9 +146,10 @@ class Session
         $this->currentChat = $chatId;
     }
 
-    public function addToGuild(Guild $guild): void
+    public function addToGuild(?Guild $guild): void
     {
-        //TODO: start building it ig
+        $this->guild = $guild;
+        $this->isOnGuild = !is_null($guild);
     }
 
     public function addFriend(Session $session, string $type): void
