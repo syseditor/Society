@@ -18,6 +18,7 @@ For collaborations, please contact me in my discord: "immooo."
 - [ ] Finish the basic infrastructure of all the systems.
 - [ ] Add JSON support for Parties.
 - [ ] Interaction through Forms and not through commands. (Maybe add custom-made forms?)
+- [ ] Ability to customize any message sent to players
 
 Suggestions are always welcome!!
 
