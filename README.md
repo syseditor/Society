@@ -1,19 +1,20 @@
 # Society
-Society is a Pocketmine plugin built to deliver servers a working... society; making friends, creating parties and guilds hasn't been easier!
+Society is a [Pocketmine](https://github.com/pmmp/PocketMine-MP "Learn more about Pocketmine") plugin built to deliver servers a working... society; making friends, creating parties and guilds hasn't been easier!
 
-# Features
+## Features
 * Friends system (under development)
 * Party system (works, needs further attention and work)
 * Guild system (under heavy development)
 * MySQL support for Friends and Guilds, while Parties are saved locally.
 
-# How to use
+## How to use
 Well... you can't right now. To be updated when the first version of the plugin is ready.
 
-# Contributions/Collaborations
+## Contributions/Collaborations
 NOTE: This plugin is under heavy development - most of the "supposed" features are NOT meant to work.\
 Contributions are always welcome. Please open an Issue for any bug you come across.
 For collaborations, please contact me in my discord: "immooo."
+
 ## TODO
 - [ ] Finish the basic infrastructure of all the systems.
 - [ ] Add JSON support for Parties.
