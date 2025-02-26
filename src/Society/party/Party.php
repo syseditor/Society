@@ -2,6 +2,7 @@
 
 namespace Society\party;
 
+use Society\guild\GuildManager;
 use Society\session\Session;
 use Society\utils\Constants;
 
@@ -60,6 +61,8 @@ class Party
         {
             if(in_array(null, $this->members)) $this->members[array_search(null, $this->members)] = $member;
             else $this->members[] = $member;
+            $member->setParty($this);
+            $member->setPartyRole(PartyManager::$roles["member"]);
             ++$this->memberCount;
             return true;
         }
@@ -97,7 +100,7 @@ class Party
         }
         else
         {
-            $member->setPartyRole(PartyManager::$roles["officer"]);
+            $member->setPartyRole(PartyManager::$roles["member"]);
             $this->officer = $member;
             return true;
         }

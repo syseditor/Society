@@ -12,11 +12,11 @@ use RuntimeException;
 
 class MySQLDatabase extends Database
 {
-    private static mysqli $conn;
-    private static string $server;
-    private static string $username;
-    private static string $password;
-    private static string $dbName;
+    protected static mysqli $conn;
+    protected static string $server;
+    protected static string $username;
+    protected static string $password;
+    protected static string $dbName;
     private static $logger;
 
     public function __construct()
@@ -35,6 +35,19 @@ class MySQLDatabase extends Database
         return new static();
     }
 
+    protected static function error(): void
+    {
+        self::$logger->error('[~] Error: '.mysqli_error(self::$conn));
+    }
+
+    protected static function critical_error(string $message): void
+    {
+        self::error();
+        self::$logger->error($message);
+        self::$logger->emergency('[~] Forcing server shutdown to prevent further damage...');
+        Society::getInstance()->getServer()->forceShutdown();
+    }
+
     public static function connect(): void
     {
         try
@@ -44,10 +57,7 @@ class MySQLDatabase extends Database
         }
         catch (mysqli_sql_exception)
         {
-            self::$logger->error('[~] Error: '.mysqli_error(self::$conn));
-            self::$logger->critical("[~] Failed to connect to MySQL database: " . self::$conn->connect_error);
-            self::$logger->emergency('[~] Forcing server shutdown to prevent further damage...');
-            Society::getInstance()->getServer()->forceShutdown();
+            self::critical_error("[~] Failed to connect to MySQL database: " . self::$conn->connect_error);
         }
     }
 
@@ -79,11 +89,9 @@ class MySQLDatabase extends Database
                 mysqli_query(self::$conn, $createDb);
                 self::$logger->notice('[~] Database was created, continuing.');
             }
-            catch (mysqli_sql_exception) {
-                self::$logger->error('[~] Error: '.mysqli_error(self::$conn));
-                self::$logger->error('[~] Database could not be created: ' . mysqli_error(self::$conn));
-                self::$logger->emergency('[~] Forcing server shutdown to prevent further damage...');
-                Society::getInstance()->getServer()->forceShutdown();
+            catch (mysqli_sql_exception)
+            {
+                self::critical_error('[~] Database could not be created: ' . mysqli_error(self::$conn));
             }
         }
 
@@ -101,11 +109,9 @@ class MySQLDatabase extends Database
                 mysqli_query(self::$conn, $createFriend);
                 self::$logger->notice('[~] Friends table was created, continuing.');
             }
-            catch (mysqli_sql_exception) {
-                self::$logger->error('[~] Error: '.mysqli_error(self::$conn));
-                self::$logger->error('[~] Friends table could not be created: ' . mysqli_error(self::$conn));
-                self::$logger->emergency('[~] Forcing server shutdown to prevent further damage...');
-                Society::getInstance()->getServer()->forceShutdown();
+            catch (mysqli_sql_exception)
+            {
+                self::critical_error('[~] Friends table could not be created: ' . mysqli_error(self::$conn));
             }
         }
 
@@ -123,11 +129,9 @@ class MySQLDatabase extends Database
                 mysqli_query(self::$conn, $createGuild);
                 self::$logger->notice('[~] Guilds table was created, continuing.');
             }
-            catch (mysqli_sql_exception) {
-                self::$logger->error('[~] Error: '.mysqli_error(self::$conn));
-                self::$logger->error('[~] Guilds table could not be created: ' . mysqli_error(self::$conn));
-                self::$logger->emergency('[~] Forcing server shutdown to prevent further damage...');
-                Society::getInstance()->getServer()->forceShutdown();
+            catch (mysqli_sql_exception)
+            {
+                self::critical_error('[~] Guilds table could not be created: ' . mysqli_error(self::$conn));
             }
         }
 
@@ -145,11 +149,9 @@ class MySQLDatabase extends Database
                 mysqli_query(self::$conn, $createGuildInfo);
                 self::$logger->notice('[~] GuildsInfo table was created, continuing.');
             }
-            catch (mysqli_sql_exception) {
-                self::$logger->error('[~] Error: '.mysqli_error(self::$conn));
-                self::$logger->error('[~] GuildsInfo table could not be created.');
-                self::$logger->emergency('[~] Forcing server shutdown to prevent further damage...');
-                Society::getInstance()->getServer()->forceShutdown();
+            catch (mysqli_sql_exception)
+            {
+                self::critical_error('[~] GuildsInfo table could not be created.');
             }
         }
     }
@@ -159,7 +161,6 @@ class MySQLDatabase extends Database
         self::$conn->close();
     }
 
-    # Register the player
     public static function registerPlayer(Session $session): void
     {
         $name = $session->getPlayer()->getName();
@@ -183,7 +184,7 @@ class MySQLDatabase extends Database
         }
         catch (mysqli_sql_exception)
         {
-            self::$logger->error('[~] Error: '.mysqli_error(self::$conn));
+            self::error();
             self::$logger->warning('[~] '.$name.' is not registered properly in the Database (Friends table). Quickly registering...');
             try
             {
@@ -192,10 +193,7 @@ class MySQLDatabase extends Database
             }
             catch (mysqli_sql_exception)
             {
-                self::$logger->error('[~] Error: '.mysqli_error(self::$conn));
-                self::$logger->error('[~] Unable to register '.$name.' into Friends table.');
-                self::$logger->emergency('[~] Forcing server shutdown to prevent further damage...');
-                Society::getInstance()->getServer()->forceShutdown();
+                self::critical_error('[~] Unable to register '.$name.' into Friends table.');
             }
         }
 
@@ -210,7 +208,7 @@ class MySQLDatabase extends Database
         }
         catch (mysqli_sql_exception)
         {
-            self::$logger->error('[~] Error: '.mysqli_error(self::$conn));
+            self::error();
             self::$logger->warning('[~] '.$name.' is not registered properly in the Database (Guilds table). Quickly registering...');
             try
             {
@@ -219,10 +217,7 @@ class MySQLDatabase extends Database
             }
             catch (mysqli_sql_exception)
             {
-                self::$logger->error('[~] Error: '.mysqli_error(self::$conn));
-                self::$logger->error('[~] Unable to register '.$name.' into Guilds table.');
-                self::$logger->emergency('[~] Forcing server shutdown to prevent further damage...');
-                Society::getInstance()->getServer()->forceShutdown();
+                self::critical_error('[~] Unable to register '.$name.' into Guilds table.');
             }
         }
 
@@ -257,10 +252,7 @@ class MySQLDatabase extends Database
         }
         catch (mysqli_sql_exception)
         {
-            self::$logger->error('[~] Error: '.mysqli_error(self::$conn));
-            self::$logger->error('[~] Unable to gain the requested information.');
-            self::$logger->emergency('[~] Forcing server shutdown to prevent further damage...');
-            Society::getInstance()->getServer()->forceShutdown();
+            self::critical_error('[~] Unable to gain the requested information.');
         }
 
         # Get the Guild
@@ -283,10 +275,7 @@ class MySQLDatabase extends Database
         }
         catch (mysqli_sql_exception)
         {
-            self::$logger->error('[~] Error: '.mysqli_error(self::$conn));
-            self::$logger->error('[~] Unable to gain the requested information.');
-            self::$logger->emergency('[~] Forcing server shutdown to prevent further damage...');
-            Society::getInstance()->getServer()->forceShutdown();
+            self::critical_error('[~] Unable to gain the requested information.');
         }
     }
 
@@ -311,7 +300,7 @@ class MySQLDatabase extends Database
         }
         catch (mysqli_sql_exception)
         {
-            self::$logger->error('[~] Error: '.mysqli_error(self::$conn));
+            self::error();
             self::$logger->warning('[~] '.$name.' guild is not registered properly in the Database (GuildsInfo table). Quickly registering...');
             try
             {
@@ -320,10 +309,7 @@ class MySQLDatabase extends Database
             }
             catch (mysqli_sql_exception)
             {
-                self::$logger->error('[~] Error: '.mysqli_error(self::$conn));
-                self::$logger->error('[~] Unable to register Guild '.$name.' into GuildsInfo table.');
-                self::$logger->emergency('[~] Forcing server shutdown to prevent further damage...');
-                Society::getInstance()->getServer()->forceShutdown();
+                self::critical_error('[~] Unable to register Guild '.$name.' into GuildsInfo table.');
             }
         }
     }
@@ -362,7 +348,7 @@ class MySQLDatabase extends Database
                 }
                 catch (mysqli_sql_exception)
                 {
-                    self::$logger->error('[~] Error: '.mysqli_error(self::$conn));
+                    self::error();
                     self::$logger->notice('[~] Ignoring member registering process...'); //to be changed
                 }
 
@@ -370,16 +356,12 @@ class MySQLDatabase extends Database
                 GuildManager::registerGuild($guild);
                 $total_guilds_loaded++;
             }
+            self::$logger->notice("[~] Successfully loaded all registered guilds (Total of $total_guilds_loaded Guilds).");
         }
         catch (mysqli_sql_exception)
         {
-            self::$logger->error('[~] Error: '.mysqli_error(self::$conn));
-            self::$logger->error('[~] Unable to load the Guilds.');
-            self::$logger->emergency('[~] Forcing server shutdown to prevent further damage...');
-            Society::getInstance()->getServer()->forceShutdown();
+            self::critical_error('[~] Unable to load the Guilds.');
         }
-
-        self::$logger->notice("[~] Successfully loaded all registered guilds (Total of $total_guilds_loaded Guilds).");
     }
 
     public static function removeGuild(Guild $guild): void
@@ -389,15 +371,17 @@ class MySQLDatabase extends Database
         $deleteQuery = 'DELETE FROM GuildsInfo WHERE GuildName = "'.$name.'"';
         try
         {
+            $query = mysqli_query(self::$conn, $deleteQuery);
             foreach($members as $role => $playerName)
             {
                 self::update('Guilds', 'GuildName', $playerName, null);
                 self::update('Guilds', 'GuildRole', $playerName, null);
             }
+            self::$logger->notice("[~] Successfully deleted Guild $name from the database.");//to be removed
         }
         catch (mysqli_sql_exception)
         {
-
+            self::critical_error("[~] Unable to delete Guild $name.");
         }
     }
 
@@ -415,10 +399,7 @@ class MySQLDatabase extends Database
                 }
                 catch (mysqli_sql_exception)
                 {
-                    self::$logger->error('[~] Error: '.mysqli_error(self::$conn));
-                    self::$logger->error('[~] Unable to update the Database.');
-                    self::$logger->emergency('[~] Forcing server shutdown to prevent further damage...');
-                    Society::getInstance()->getServer()->forceShutdown();
+                    self::critical_error('[~] Unable to update the Database.');
                 }
                 break;
             case 'GuildsInfo':
@@ -426,12 +407,5 @@ class MySQLDatabase extends Database
             default:
                 throw new RuntimeException("[~] Couldn't update the Database: Table out of range");
         }
-    }
-
-    public static function isFriendUnique(string $id, Session $session): bool
-    {
-        $idSession = $session->getPlayer()->getUniqueId()->getInteger();
-        //continue
-        return false;
     }
 }

@@ -154,7 +154,7 @@ class Session
     public function addFriend(Session $session, string $type): void
     {
         $name = $session->getPlayer()->getName();
-
+        
         $friendList = $this->getFriendList();
         $i = array_search(null, $friendList);
 
