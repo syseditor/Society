@@ -40,6 +40,34 @@ class GuildCommand extends Command
             case "chat":
                 GuildCommandArguments::chat($sender);
                 break;
+            case "promote":
+                if(!isset($args[1])) { $sender->sendMessage("You need to specify a target!"); return; }
+                GuildCommandArguments::promote($sender, $args[1]);
+                break;
+            case "demote":
+                if(!isset($args[1])) { $sender->sendMessage("You need to specify a target"); return; }
+                GuildCommandArguments::demote($sender, $args[1]);
+                break;
+            case "invite":
+                if(!isset($args[1])) { $sender->sendMessage("You need to specify a target!"); return; }
+                GuildCommandArguments::invite($sender, $args[1]);
+                break;
+            case "kick":
+                if(!isset($args[1])) { $sender->sendMessage("You need to specify a target!"); return; }
+                GuildCommandArguments::kick($sender, $args[1]);
+                break;
+            case "accept":
+                if(!isset($args[1])) { $sender->sendMessage("You need to specify a guild!"); return; }
+                GuildCommandArguments::accept($sender, $args[1]);
+                break;
+            case "decline":
+                if(!isset($args[1])) { $sender->sendMessage("You need to specify a guild!"); return; }
+                GuildCommandArguments::decline($sender, $args[1]);
+                break;
+            case "transfer":
+                if(!isset($args[1])) { $sender->sendMessage("You need to specify a target!"); return; }
+                GuildCommandArguments::transfer($sender, $args[1]);
+                break;
             default: $sender->sendMessage($this->getUsage());
         }
     }

@@ -57,7 +57,7 @@ class Guild
         return count($this->getMembers(), 1) - 4 + 1; //4 rank titles, 1 guildmaster (it's a string, NOT A 1x1 array)
     }
 
-    public function hasGivenPermissionToDisband(): bool
+    public function wasGivenPermissionToDisband(): bool
     {
         return $this->permissionToDisbandGiven;
     }
@@ -102,7 +102,6 @@ class Guild
 
     public function removeMember(string $member, string $cause): void
     {
-        $name = $this->getName();
         MySQLDatabase::update('Guilds', 'GuildName', $member, null);
         MySQLDatabase::update('Guilds', 'GuildRole', $member, null);
         if(array_key_exists($member, SessionManager::getSessions()))
@@ -117,7 +116,7 @@ class Guild
 
     public function disband(): void
     {
-        if($this->hasGivenPermissionToDisband()) //double checking
+        if($this->wasGivenPermissionToDisband()) //double checking
         {
             $members = $this->getMembers();
 
@@ -159,5 +158,32 @@ class Guild
                 }
             }
         }
+    }
+
+    public function isGuildMember(string $player): bool
+    {
+        $members = array();
+        foreach($this->members as $rank => $values)
+        {
+            if(is_string($values)) $members[] = $values;
+            else $members = array_merge($members, $values);
+        }
+
+        return in_array($player, $members);
+    }
+
+    public function isMember(string $player): bool
+    {
+        return in_array($player, $this->members["member"]);
+    }
+
+    public function isOfficer(string $player): bool
+    {
+        return in_array($player, $this->members["officer"]);
+    }
+
+    public function isColeader(string $player): bool
+    {
+        return in_array($player, $this->members["coleader"]);
     }
 }

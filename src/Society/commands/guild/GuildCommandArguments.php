@@ -79,7 +79,7 @@ class GuildCommandArguments
             if($sender->hasGuildPermission("guildAdmin"))
             {
                 $guild = $sender->getGuild();
-                if($guild->hasGivenPermissionToDisband())
+                if($guild->wasGivenPermissionToDisband())
                 {
                     $name = $guild->getName();
                     $sender->sendMessage("[Guild] Disbanding Guild $name...");
@@ -141,5 +141,40 @@ class GuildCommandArguments
             }
         }
         else $sender->sendMessage("You are not in a guild.");
+    }
+
+    public static function promote(Session $sender, string $target): void
+    {
+
+    }
+
+    public static function demote(Session $sender, string $target): void
+    {
+
+    }
+
+    public static function kick(Session $sender, string $target): void
+    {
+
+    }
+
+    public static function invite(Session $sender, string $target): void
+    {
+
+    }
+
+    public static function accept(Session $sender, string $guild): void
+    {
+
+    }
+
+    public static function decline(Session $sender, string $guild): void
+    {
+
+    }
+
+    public static function transfer(Session $sender, string $target): void
+    {
+
     }
 }
