@@ -5,6 +5,7 @@ namespace Society\guild;
 use Society\database\mysql\MySQLDatabase;
 use Society\session\Session;
 use Society\session\SessionManager;
+use Society\utils\Constants;
 
 class Guild
 {
@@ -99,9 +100,39 @@ class Guild
             MySQLDatabase::update("GuildsInfo", "MaxAllowedMembers", $this->getName(), $this->maxMembersAllowed);
     }
 
+    public function removeMember(string $member, string $cause): void
+    {
+        $name = $this->getName();
+        MySQLDatabase::update('Guilds', 'GuildName', $member, null);
+        MySQLDatabase::update('Guilds', 'GuildRole', $member, null);
+        if(array_key_exists($member, SessionManager::getSessions()))
+        {
+            $session = SessionManager::getSessionByName($member);
+            $session->setGuildRole(null);
+            $session->setGuild(null);
+            $session->setCurrentChat(Constants::CHAT_GLOBAL);
+            $session->sendMessage("[Guild] " . $cause);
+        }
+    }
+
     public function disband(): void
     {
+        if($this->hasGivenPermissionToDisband()) //double checking
+        {
+            $members = $this->getMembers();
 
+            foreach($members as $rank => $values)
+            {
+                if(is_string($values)) $this->removeMember($values, "The Guild was disbanded.");
+                else
+                {
+                    foreach($values as $member) $this->removeMember($member, "The Guild was disbanded.");
+                }
+            }
+
+            MySQLDatabase::removeGuild($this);
+            GuildManager::removeGuild($this);
+        }
     }
 
     public function broadcastMessage(string $message): void
@@ -112,11 +143,8 @@ class Guild
             {
                 if(array_key_exists($memberArray, SessionManager::getSessions()))
                 {
-                    if(!is_null(SessionManager::getSessionByName($memberArray)))
-                    {
-                        $session = SessionManager::getSessionByName($memberArray);
-                        $session->sendMessage($message);
-                    }
+                    $session = SessionManager::getSessionByName($memberArray);
+                    $session->sendMessage($message);
                 }
             }
             else
@@ -125,11 +153,8 @@ class Guild
                 {
                     if(array_key_exists($member, SessionManager::getSessions()))
                     {
-                        if(!is_null(SessionManager::getSessionByName($member)))
-                        {
-                            $session = SessionManager::getSessionByName($member);
-                            $session->sendMessage($message);
-                        }
+                        $session = SessionManager::getSessionByName($member);
+                        $session->sendMessage($message);
                     }
                 }
             }

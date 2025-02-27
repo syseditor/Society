@@ -366,16 +366,10 @@ class MySQLDatabase extends Database
     public static function removeGuild(Guild $guild): void
     {
         $name = $guild->getName();
-        $members = $guild->getMembers();
         $deleteQuery = 'DELETE FROM GuildsInfo WHERE GuildName = "'.$name.'"';
         try
         {
-            $query = mysqli_query(self::$conn, $deleteQuery);
-            foreach($members as $role => $playerName)
-            {
-                self::update('Guilds', 'GuildName', $playerName, null);
-                self::update('Guilds', 'GuildRole', $playerName, null);
-            }
+            mysqli_query(self::$conn, $deleteQuery);
             self::$logger->notice("[~] Successfully deleted Guild $name from the database.");//to be removed
         }
         catch (mysqli_sql_exception)
