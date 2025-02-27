@@ -28,6 +28,12 @@ class GuildCommand extends Command
                 if(!isset($args[1])) { $sender->sendMessage("You need to specify a name for your Guild!"); return; }
                 GuildCommandArguments::create($sender, $args[1]);
                 break;
+            case "disband":
+                GuildCommandArguments::disband($sender);
+                break;
+            case "chat":
+                GuildCommandArguments::chat($sender);
+                break;
             default: $sender->sendMessage($this->getUsage());
         }
     }

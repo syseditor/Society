@@ -7,6 +7,7 @@ use Society\session\Session;
 use Society\session\SessionManager;
 use Society\guild\Guild;
 use Society\guild\GuildManager;
+use Society\utils\Constants;
 
 class GuildCommandArguments
 {
@@ -69,5 +70,36 @@ class GuildCommandArguments
             else $sender->sendMessage("You are not allowed to create a guild.");
         }
         else $sender->sendMessage("[Guild] You are already in a guild.");
+    }
+
+    public static function disband(Session $sender): void
+    {
+        if($sender->checkAvailability("guild"))
+        {
+            if($sender->hasGuildPermission("canDisband"))
+            {
+
+            }
+            else $sender->sendMessage("[Guild] You do not have permission to disband your guild.");
+        }
+        else $sender->sendMessage("You are not in a guild.");
+    }
+
+    public static function chat(Session $sender): void
+    {
+        if($sender->checkAvailability("guild"))
+        {
+            if($sender->getCurrentChat() == Constants::CHAT_GLOBAL || $sender->getCurrentChat() == Constants::CHAT_PARTY)
+            {
+                $sender->setCurrentChat(Constants::CHAT_GUILD);
+                $sender->sendMessage("[Guild] You switched to Guild chat.");
+            }
+            else
+            {
+                $sender->setCurrentChat(Constants::CHAT_GUILD);
+                $sender->sendMessage("[Guild] You switched to Global chat.");
+            }
+        }
+        else $sender->sendMessage("You are not in a guild.");
     }
 }
