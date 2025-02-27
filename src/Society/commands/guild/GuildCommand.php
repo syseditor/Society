@@ -31,6 +31,12 @@ class GuildCommand extends Command
             case "disband":
                 GuildCommandArguments::disband($sender);
                 break;
+            case "cancel":
+                GuildCommandArguments::cancel($sender);
+                break;
+            case "refresh":
+                GuildCommandArguments::refresh($sender);
+                break;
             case "chat":
                 GuildCommandArguments::chat($sender);
                 break;

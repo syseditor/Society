@@ -76,14 +76,54 @@ class GuildCommandArguments
     {
         if($sender->checkAvailability("guild"))
         {
-            if($sender->hasGuildPermission("canDisband"))
+            if($sender->hasGuildPermission("guildAdmin"))
             {
-
+                $guild = $sender->getGuild();
+                if($guild->hasGivenPermissionToDisband())
+                {
+                    $name = $guild->getName();
+                    $sender->sendMessage("[Guild] Disbanding Guild $name...");
+                    $guild->disband();
+                    $sender->sendMessage("[Guild] Successfully disbanded Guild $name.");
+                }
+                else
+                {
+                    $sender->sendMessage("[Guild] Are you sure you want to disband this guild? Type \"/guild disband\" to confirm or \"/guild cancel\" to abort.");
+                    $guild->setPermissionToDisband(true);
+                }
             }
             else $sender->sendMessage("[Guild] You do not have permission to disband your guild.");
         }
         else $sender->sendMessage("You are not in a guild.");
     }
+
+    public static function cancel(Session $sender): void
+    {
+        if($sender->checkAvailability("guild"))
+        {
+            if($sender->hasGuildPermission("guildAdmin"))
+            {
+                $sender->getGuild()->setPermissionToDisband(false);
+                $sender->sendMessage("[Guild] You canceled any attempts to disband the guild.");
+            }
+            else $sender->sendMessage("[Guild] You do not have permission to execute this command.");
+        }
+        else $sender->sendMessage("You are not in a guild.");
+    }
+
+    public static function refresh(Session $sender): void
+    {
+        if($sender->checkAvailability("guild"))
+        {
+            if($sender->hasGuildPermission("guildAdmin"))
+            {
+                $sender->getGuild()->refresh();
+                $sender->sendMessage("[Guild] Successfully refreshed your Guild status.");
+            }
+            else $sender->sendMessage("[Guild] You do not have permission to execute this command.");
+        }
+        else $sender->sendMessage("You are not in a guild.");
+    } //NOT so important rn
 
     public static function chat(Session $sender): void
     {

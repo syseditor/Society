@@ -49,7 +49,7 @@ class SocietyListener implements Listener
         {
             $event->cancel();
             $message = $event->getMessage();
-            $session->getParty()->broadcastMessage(TextFormat::LIGHT_PURPLE . "[Guild Chat] " . Utils::roleToColor($session->getPartyRole()) . $session->getName() . TextFormat::RESET . " >> " . $message);
+            $session->getGuild()->broadcastMessage(TextFormat::LIGHT_PURPLE . "[Guild Chat] " . Utils::roleToColor($session->getGuildRole()) . $session->getName() . TextFormat::RESET . " >> " . $message);
         }
     }
 }
