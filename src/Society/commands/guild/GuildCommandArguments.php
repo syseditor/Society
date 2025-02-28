@@ -20,8 +20,8 @@ class GuildCommandArguments
 
             $name = $guild->getName();
             $guildMembers = $guild->getMembers();
-            $maxmembers = $guild->getMaxMembersAllowed();
-            $membercount = $guild->getMemberCount();
+            $maxmembers = $guild->getMaxTotalMembersAllowed();
+            $membercount = $guild->getTotalMemberCount();
 
             $guildmaster = "Guildmaster: " . $guildMembers["guildmaster"] . "\n";
             $coleaders = "";
@@ -145,12 +145,49 @@ class GuildCommandArguments
 
     public static function promote(Session $sender, string $target): void
     {
-
+        if($sender->checkAvailability("guild"))
+        {
+            if($sender->hasGuildPermission("canPromote"))
+            {
+                $guild = $sender->getGuild();
+                if($guild->isGuildMember($target))
+                {
+                    if(($guild->isMember($target) && $guild->getOfficerCount() < $guild->getMaxOfficersAllowed())
+                        || ($guild->isOfficer($target) && $guild->getColeaderCount() < $guild->getMaxColeadersAllowed()))
+                    {
+                        $result = $guild->promote($target);
+                        $sender->sendMessage("[Guild] Successfully promoted $target to $result.");
+                    }
+                    else $sender->sendMessage("[Guild] $target cannot be promoted.");
+                }
+                else $sender->sendMessage("[Guild] $target is not part of the guild.");
+            }
+            else $sender->sendMessage("[Guild] You do not have permission to execute this command.");
+        }
+        else $sender->sendMessage("You are not in a guild.");
     }
 
     public static function demote(Session $sender, string $target): void
     {
-
+        if($sender->checkAvailability("guild"))
+        {
+            if($sender->hasGuildPermission("canPromote"))
+            {
+                $guild = $sender->getGuild();
+                if($guild->isGuildMember($target))
+                {
+                    if(($guild->isColeader($target) && $guild->getOfficerCount() < $guild->getMaxOfficersAllowed()) || $guild->isOfficer($target))
+                    {
+                        $result = $guild->demote($target);
+                        $sender->sendMessage("[Guild] Successfully demoted $target to $result.");
+                    }
+                    else $sender->sendMessage("[Guild] $target cannot be demoted.");
+                }
+                else $sender->sendMessage("[Guild] $target is not part of the guild.");
+            }
+            else $sender->sendMessage("[Guild] You do not have permission to execute this command.");
+        }
+        else $sender->sendMessage("You are not in a guild.");
     }
 
     public static function kick(Session $sender, string $target): void

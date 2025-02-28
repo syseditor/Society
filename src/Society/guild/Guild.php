@@ -41,20 +41,47 @@ class Guild
         return $this->exp;
     }
 
-    public function getMaxMembersAllowed(): int
+    public function getMaxTotalMembersAllowed(): int
     {
         return $this->maxMembersAllowed;
     }
 
+    public function getMaxOfficersAllowed(): int //TODO: derive this from settings.yml
+    {
+        if($this->maxMembersAllowed == 50) $result = 3;
+        else if($this->maxMembersAllowed == 100) $result = 5;
+        else $result = 7;
+
+        return $result;
+    }
+
+    public function getMaxColeadersAllowed(): int //TODO: derive this from settings.yml
+    {
+        if($this->maxMembersAllowed == 50) $result = 2;
+        else if($this->maxMembersAllowed == 100) $result = 3;
+        else $result = 4;
+
+        return $result;
+    }
 
     public function getMembers(): array
     {
         return $this->members;
     }
 
-    public function getMemberCount(): int
+    public function getTotalMemberCount(): int
     {
-        return count($this->getMembers(), 1) - 4 + 1; //4 rank titles, 1 guildmaster (it's a string, NOT A 1x1 array)
+        return count(array_filter($this->getMembers(), fn($value) => !empty($value) , ARRAY_FILTER_USE_BOTH), 1);
+    }
+
+    public function getOfficerCount(): int
+    {
+        return count(array_filter($this->getMembers()["officer"], fn($value) => !empty($value)));
+    }
+
+    public function getColeaderCount(): int
+    {
+        return count(array_filter($this->getMembers()["coleader"], fn($value) => !empty($value)));
     }
 
     public function wasGivenPermissionToDisband(): bool
@@ -92,26 +119,104 @@ class Guild
         $guildmaster = SessionManager::getSessionByName($this->members["guildmaster"]);
         $oldMax = $this->maxMembersAllowed;
 
-        if($guildmaster->hasPermission("society.guild.twohundred")) $this->setMaxMembersAllowed(200);
-        else if($guildmaster->hasPermission("society.guild.hundred")) $this->setMaxMembersAllowed(100);
+        if($guildmaster->hasPermission(Constants::GUILD_MAX_MEMBERS_TWO_HUNDRED)) $this->setMaxMembersAllowed(200);
+        else if($guildmaster->hasPermission(Constants::GUILD_MAX_MEMBERS_HUNDRED)) $this->setMaxMembersAllowed(100);
         else $this->setMaxMembersAllowed(50);
 
         if($oldMax !== $this->maxMembersAllowed)
             MySQLDatabase::update("GuildsInfo", "MaxAllowedMembers", $this->getName(), $this->maxMembersAllowed);
     }
 
+    public function addMember(Session $member): void
+    {
+        $name = $member->getName();
+
+        $member->setGuildRole(GuildManager::getGuildRoleByName("member"));
+        $member->updateGuild($this);
+        $this->members["member"][] = $name;
+    }
+
     public function removeMember(string $member, string $cause): void
     {
         MySQLDatabase::update('Guilds', 'GuildName', $member, null);
         MySQLDatabase::update('Guilds', 'GuildRole', $member, null);
+
+        //Obtain the member's guild rank
+        if($this->isMember($member)) $rank = "member";
+        else if($this->isOfficer($member)) $rank = "officer";
+        else $rank = "coleader";
+
+        $index = array_search($member, $this->members[$rank]);
+        $this->members[$rank][$index] = null;
         if(array_key_exists($member, SessionManager::getSessions()))
         {
             $session = SessionManager::getSessionByName($member);
-            $session->setGuildRole(null);
-            $session->setGuild(null);
-            $session->setCurrentChat(Constants::CHAT_GLOBAL);
-            $session->sendMessage("[Guild] " . $cause);
+            $session->removeFromGuild($cause);
         }
+    }
+
+    protected function changeGuildRank(string $current, string $result, string $target): void
+    {
+        MySQLDatabase::update("Guilds", "GuildRole", $target, $result);
+        $this->members[$current][array_search($target, $this->members[$current])] = null;
+        $index = array_search(null, $this->members[$result]);
+        $index = is_bool($index) ? null : $index;
+        $this->members[$result][$index] = $target;
+    }
+
+    public function promote(string $target): string
+    {
+        if($this->isMember($target))
+        {
+            $result = "officer";
+            $current = "member";
+        }
+        else
+        {
+            $result = "coleader";
+            $current = "officer";
+        }
+
+        $this->changeGuildRank($current, $result, $target);
+
+        if(array_key_exists($target, SessionManager::getSessions()))
+        {
+            $session = SessionManager::getSessionByName($target);
+            $session->setGuildRole(GuildManager::getGuildRoleByName($result));
+            $session->sendMessage("[Guild] You were promoted to ".ucfirst($result)."!");
+        }
+
+        return ucfirst($result);
+    }
+
+    public function demote(string $target): string
+    {
+        if($this->isColeader($target))
+        {
+            $result = "officer";
+            $current = "coleader";
+        }
+        else
+        {
+            $result = "member";
+            $current = "officer";
+        }
+
+        $this->changeGuildRank($current, $result, $target);
+
+        if(array_key_exists($target, SessionManager::getSessions()))
+        {
+            $session = SessionManager::getSessionByName($target);
+            $session->setGuildRole(GuildManager::getGuildRoleByName($result));
+            $session->sendMessage("[Guild] You were demoted to ".ucfirst($result)."!");
+        }
+
+        return ucfirst($result);
+    }
+
+    public function transferOwnership(string $target): string
+    {
+        return;
     }
 
     public function disband(): void
@@ -185,5 +290,10 @@ class Guild
     public function isColeader(string $player): bool
     {
         return in_array($player, $this->members["coleader"]);
+    }
+
+    public function isTheGuildmaster(string $player): bool
+    {
+        return !strcmp($player, $this->members["guildmaster"]);
     }
 }

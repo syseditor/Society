@@ -190,18 +190,20 @@ class Session
         }
     }
 
-    public function removeFromParty(string $message): void
+    public function removeFromParty(string $cause): void
     {
-        $this->partyRole = null;
-        $this->party = null;
-        $this->isOnParty = false;
-        $this->sendMessage($message);
+        $this->setPartyRole(null);
+        $this->addToParty(null);
         $this->setCurrentChat(Constants::CHAT_GLOBAL);
+        $this->sendMessage("[Party] " . $cause);
     }
 
-    public function removeFromGuild(): void
+    public function removeFromGuild(string $cause): void
     {
-        //TODO: start building it ig
+        $this->setGuildRole(null);
+        $this->setGuild(null);
+        $this->setCurrentChat(Constants::CHAT_GLOBAL);
+        $this->sendMessage("[Guild] " . $cause);
     }
 
     public function removeFriend(string $name, string $cause): void

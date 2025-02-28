@@ -283,7 +283,7 @@ class MySQLDatabase extends Database
         $name = $guild->getName();
         $level = $guild->getLevel();
         $exp = $guild->getExperiencePoints();
-        $maxmembers = $guild->getMaxMembersAllowed();
+        $maxmembers = $guild->getMaxTotalMembersAllowed();
 
         $checkQuery = 'SELECT CASE WHEN EXISTS (SELECT GuildName FROM GuildsInfo WHERE GuildName = "'.$name.'") THEN TRUE ELSE FALSE END;';
         $registerQuery = 'INSERT INTO GuildsInfo VALUES ("'.$name.'", '.$level.', '.$exp.', '.$maxmembers.');';
