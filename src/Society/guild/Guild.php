@@ -159,13 +159,11 @@ class Guild
         MySQLDatabase::update('Guilds', 'GuildRole', $member, null);
 
         //Obtain the member's guild rank
-        if($this->isMember($member)) $rank = "member";
-        else if($this->isOfficer($member)) $rank = "officer";
-        else $rank = "coleader";
+        $rank = $this->getGuildMemberRank($member);
 
         $index = array_search($member, $this->members[$rank]);
         $this->members[$rank][$index] = null;
-        if(array_key_exists($member, SessionManager::getSessions()))
+        if(SessionManager::isOnline($member))
         {
             $session = SessionManager::getSessionByName($member);
             $session->removeFromGuild($cause);
@@ -174,11 +172,36 @@ class Guild
 
     protected function changeGuildRank(string $current, string $result, string $target): void
     {
+        //Database changes
         MySQLDatabase::update("Guilds", "GuildRole", $target, $result);
-        $this->members[$current][array_search($target, $this->members[$current])] = null;
-        $index = array_search(null, $this->members[$result]);
-        $index = is_bool($index) ? null : $index;
-        $this->members[$result][$index] = $target;
+
+        //Guild changes
+        if(strcmp($result, "guildmaster") && strcmp($current, "guildmaster"))
+        {
+            $this->members[$current][array_search($target, $this->members[$current])] = null;
+            $index = array_search(null, $this->members[$result]);
+            $index = is_bool($index) ? null : $index;
+            $this->members[$result][$index] = $target;
+        }
+        else if(!strcmp($result, "guildmaster"))
+        {
+            $this->members[$current][array_search($target, $this->members[$current])] = null;
+            $this->members["guildmaster"] = $target;
+        }
+        else
+        {
+            $this->members["guildmaster"] = null;
+            $index = array_search(null, $this->members[$result]);
+            $index = is_bool($index) ? null : $index;
+            $this->members[$result][$index] = $target;
+        }
+
+        //Session changes
+        if(SessionManager::isOnline($target))
+        {
+            $session = SessionManager::getSessionByName($target);
+            $session->setGuildRole(GuildManager::getGuildRoleByName($result));
+        }
     }
 
     public function promote(string $target): string
@@ -196,12 +219,8 @@ class Guild
 
         $this->changeGuildRank($current, $result, $target);
 
-        if(array_key_exists($target, SessionManager::getSessions()))
-        {
-            $session = SessionManager::getSessionByName($target);
-            $session->setGuildRole(GuildManager::getGuildRoleByName($result));
-            $session->sendMessage("[Guild] You were promoted to ".ucfirst($result)."!");
-        }
+        if(SessionManager::isOnline($target))
+            SessionManager::getSessionByName($target)->sendMessage("[Guild] You were promoted to ".ucfirst($result)."!");
 
         return ucfirst($result);
     }
@@ -221,19 +240,24 @@ class Guild
 
         $this->changeGuildRank($current, $result, $target);
 
-        if(array_key_exists($target, SessionManager::getSessions()))
-        {
-            $session = SessionManager::getSessionByName($target);
-            $session->setGuildRole(GuildManager::getGuildRoleByName($result));
-            $session->sendMessage("[Guild] You were demoted to ".ucfirst($result)."!");
-        }
+        if(SessionManager::isOnline($target))
+            SessionManager::getSessionByName($target)->sendMessage("[Guild] You were demoted to ".ucfirst($result)."!");
 
         return ucfirst($result);
     }
 
-    public function transferOwnership(string $target): string
+    public function getGuildMemberRank(string $target): string
     {
-        return;
+        if($this->isMember($target)) return "member";
+        else if($this->isOfficer($target)) return "officer";
+        else return "coleader";
+    }
+
+    public function transferOwnership(string $target): void
+    {
+        $guildmaster = $this->members["guildmaster"];
+        $this->changeGuildRank("guildmaster", "coleader", $guildmaster);
+        $this->changeGuildRank($this->getGuildMemberRank($target), "guildmaster", $target);
     }
 
     public function disband(): void
@@ -262,7 +286,7 @@ class Guild
         {
             if(is_string($memberArray))
             {
-                if(array_key_exists($memberArray, SessionManager::getSessions()))
+                if(SessionManager::isOnline($memberArray))
                 {
                     $session = SessionManager::getSessionByName($memberArray);
                     $session->sendMessage($message);
@@ -272,13 +296,25 @@ class Guild
             {
                 foreach($memberArray as $member)
                 {
-                    if(array_key_exists($member, SessionManager::getSessions()))
+                    if(SessionManager::isOnline($member))
                     {
                         $session = SessionManager::getSessionByName($member);
                         $session->sendMessage($message);
                     }
                 }
             }
+        }
+    }
+
+    public function sendLogMessage(string $message): void
+    {
+        foreach($this->members as $rank => $values)
+        {
+            if(is_string($values)) if(SessionManager::isOnline($values)) SessionManager::getSessionByName($values)->sendMessage($message);
+            else if(!strcmp($rank, "coleader"))
+                foreach((array)$values as $coleader)
+                    if(!is_null($coleader)) if(SessionManager::isOnline($coleader))
+                        SessionManager::getSessionByName($coleader)->sendMessage($message);
         }
     }
 

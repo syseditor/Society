@@ -53,4 +53,9 @@ class SessionManager
         $name = $session->getPlayer()->getName();
         unset(self::$sessions[$name]);
     }
+
+    public static function isOnline(string $target): bool
+    {
+        return array_key_exists($target, self::getSessions());
+    }
 }

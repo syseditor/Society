@@ -209,7 +209,22 @@ class GuildCommandArguments
 
     public static function kick(Session $sender, string $target): void
     {
-
+        if($sender->checkAvailability("guild"))
+        {
+            if($sender->hasGuildPermission("canKick"))
+            {
+                $guild = $sender->getGuild();
+                if($guild->isGuildMember($target))
+                {
+                    $guild->removeMember($target, "You were kicked out of the Guild.");
+                    $guild->sendLogMessage("[Guild]" .$sender->getName() . "kicked $target out of the Guild.");
+                    $sender->sendMessage("[Guild] Successfully kicked $target out of the Guild.");
+                }
+                else $sender->sendMessage("[Guild] $target is not part of the guild.");
+            }
+            else $sender->sendMessage("[Guild] You do not have permission to execute this command.");
+        }
+        else $sender->sendMessage("You are not in a guild.");
     }
 
     public static function invite(Session $sender, string $target): void
@@ -229,6 +244,22 @@ class GuildCommandArguments
 
     public static function transfer(Session $sender, string $target): void
     {
-
+        if($sender->checkAvailability("guild"))
+        {
+            if($sender->hasGuildPermission("guildAdmin"))
+            {
+                $guild = $sender->getGuild();
+                if($guild->isGuildMember($target))
+                {
+                    $guild->transferOwnership($target);
+                    $sender->sendMessage("[Guild] Successfully transferred the Guild's ownership to $target.");
+                    if(SessionManager::isOnline($target))
+                        SessionManager::getSessionByName($target)->sendMessage("[Guild] The Guild's ownership was transferred to you! You are the new Guildmaster!");
+                }
+                else $sender->sendMessage("[Guild] $target is not part of the guild.");
+            }
+            else $sender->sendMessage("[Guild] You do not have permission to execute this command.");
+        }
+        else $sender->sendMessage("You are not in a guild.");
     }
 }
