@@ -23,6 +23,8 @@ For collaborations, please contact me in my discord: "immooo."
 - [ ] Interaction through Forms and not through commands. (Maybe add custom-made forms?)
 - [ ] Ability to customize any message sent to players.
 - [ ] Ranking system (includes Ranks-Titles, statistics, rewards etc).
+- [ ] Add social settings in-game (turning on/off requests, player visibility etc)
+- [ ] Implement a way to make the plugin more customizable (adding settings basically)
 
 Suggestions are always welcome!!
 
