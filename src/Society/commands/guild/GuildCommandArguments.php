@@ -24,6 +24,7 @@ use Society\session\Session;
 use Society\session\SessionManager;
 use Society\guild\Guild;
 use Society\guild\GuildManager;
+use Society\guild\GuildInvitation;
 use Society\utils\Constants;
 
 class GuildCommandArguments
@@ -54,6 +55,26 @@ class GuildCommandArguments
 
             $final .= "Guild: $name\n" . $guildmaster . $coleaders . $officers . $members . "Total Guild members: $membercount/$maxmembers";
             $sender->sendMessage($final);
+        }
+        else $sender->sendMessage("You are not in a guild.");
+    }
+
+    public static function invites(Session $sender): void
+    {
+        if($sender->checkAvailability("guild"))
+        {
+            $invites = $sender->getGuildInvites();
+            $total = count($invites);
+            $final = "You have $total Guild invites";
+            if($total == 0) $sender->sendMessage($final);
+            else
+            {
+                $final .= "\nGuilds: ";
+                $names = [];
+                foreach($invites as $invite) $names[] = $invite->getGuild()->getName();
+                $final .= join(", ", $names);
+                $sender->sendMessage($final);
+            }
         }
         else $sender->sendMessage("You are not in a guild.");
     }
@@ -174,6 +195,7 @@ class GuildCommandArguments
                     {
                         $result = $guild->promote($target);
                         $sender->sendMessage("[Guild] Successfully promoted $target to $result.");
+                        $name = $sender->getName();
                     }
                     else $sender->sendMessage("[Guild] $target cannot be promoted.");
                 }

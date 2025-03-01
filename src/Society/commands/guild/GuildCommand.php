@@ -41,6 +41,9 @@ class GuildCommand extends Command
             case "info":
                 GuildCommandArguments::info($sender);
                 break;
+            case "invites":
+                GuildCommandArguments::invites($sender);
+                break;
             case "create":
                 if(!isset($args[1])) { $sender->sendMessage("You need to specify a name for your Guild!"); return; }
                 GuildCommandArguments::create($sender, $args[1]);

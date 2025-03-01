@@ -39,6 +39,7 @@ class Session
     private array $partyInvites = [];
     private ?Guild $guild;
     private ?GuildRole $guildRole;
+    private array $guildInvites = [];
     private bool $isOnParty;
     private bool $isOnGuild;
     private array $friendlist = [];
@@ -91,6 +92,11 @@ class Session
     public function getGuildRole(): ?GuildRole
     {
         return $this->guildRole;
+    }
+
+    public function getGuildInvites(): array
+    {
+        return $this->guildInvites;
     }
 
     public function getFriendList(): array
@@ -294,6 +300,16 @@ class Session
     public function removePartyInvitation(string $partyName): void
     {
         unset($this->partyInvites[$partyName]);
+    }
+
+    public function receiveGuildInvitation(Guild $guild): void
+    {
+
+    }
+
+    public function removeGuildInvitation(string $guildName): void
+    {
+        unset($this->guildInvites[$guildName]);
     }
 
     public function sendMessage(string $message): void
