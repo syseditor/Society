@@ -23,6 +23,8 @@ For collaborations, please contact me in my discord: "immooo."
 - [ ] Interaction through Forms and not through commands. (Maybe add custom-made forms?)
 - [ ] Ability to customize any message sent to players.
 - [ ] Ranking system (includes Ranks-Titles, statistics, rewards etc).
+- [ ] Add social settings in-game (turning on/off requests, player visibility etc)
+- [ ] Implement ability to customize the amount of ranks, their names and permissions they have for the Party and Guild system.
 
 Suggestions are always welcome!!
 
