@@ -23,18 +23,18 @@ use Society\session\Session;
 
 class GuildInvitation
 {
-    private Session $inviter;
+    private string $inviter;
     private Session $receiver;
     private Guild $guild;
 
-    public function __construct(Session $inviter, Session $receiver, Guild $guild)
+    public function __construct(string $inviter, Session $receiver, Guild $guild)
     {
         $this->inviter = $inviter;
         $this->receiver = $receiver;
         $this->guild = $guild;
     }
 
-    public function getInviter(): Session
+    public function getInviter(): string
     {
         return $this->inviter;
     }

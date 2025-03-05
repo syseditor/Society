@@ -23,6 +23,7 @@ use pocketmine\player\Player;
 
 use Society\commands\friends\utils\FriendInvitation;
 use Society\database\mysql\MySQLDatabase;
+use Society\guild\GuildInvitation;
 use Society\party\Party;
 use Society\party\PartyRole;
 use Society\party\PartyInvitation;
@@ -302,14 +303,23 @@ class Session
         unset($this->partyInvites[$partyName]);
     }
 
-    public function receiveGuildInvitation(Guild $guild): void
+    public function receiveGuildInvitation(GuildInvitation $invitation): void
     {
+        $sender = $invitation->getInviter();
+        $guildName = $invitation->getGuild()->getName();
 
+        $this->guildInvites[$guildName] = $invitation;
+        $this->sendMessage("[Guild] You were invited by " . $sender->getName() . " to join their party! Type \"/guild accept " . $guildName . "\" to join their guild!");
     }
 
     public function removeGuildInvitation(string $guildName): void
     {
         unset($this->guildInvites[$guildName]);
+    }
+
+    public function isInvitedByGuild(string $guildName): bool
+    {
+        return array_key_exists($guildName, $this->guildInvites) && !is_null($this->guildInvites[$guildName]);
     }
 
     public function sendMessage(string $message): void

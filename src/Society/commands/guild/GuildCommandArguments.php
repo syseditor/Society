@@ -251,17 +251,67 @@ class GuildCommandArguments
 
     public static function invite(Session $sender, string $target): void
     {
+        if($sender->checkAvailability("guild"))
+        {
+            if($sender->hasGuildPermission("canInvite"))
+            {
+                $guild = $sender->getGuild();
+                if(SessionManager::isOnline($target))
+                {
+                    if(!$guild->isGuildMember($target))
+                    {
+                        $receiver = SessionManager::getSessionByName($target);
+                        $invite = new GuildInvitation($sender->getName(), $receiver, $guild);
 
+                        $receiver->receiveGuildInvitation($invite);
+                        $sender->sendMessage("[Guild] Successfully invited $target to the guild.");
+                    }
+                    else $sender->sendMessage("[Guild] $target is already a guild member.");
+                }
+                else $sender->sendMessage("[Guild] $target is not online.");
+            }
+            else $sender->sendMessage("[Guild] You do not have permission to execute this command.");
+        }
+        else $sender->sendMessage("You are not in a guild.");
     }
 
     public static function accept(Session $sender, string $guild): void
     {
-
+        if(!$sender->checkAvailability("guild"))
+        {
+            if($sender->isInvitedByGuild($guild))
+            {
+                if(GuildManager::guildExists($guild))
+                {
+                    $sender->setGuildRole(GuildManager::getGuildRoleByName("member"));
+                    $sender->updateGuild(GuildManager::getGuildByName($guild));
+                    $sender->sendMessage("[Guild] You successfully joined $guild! Welcome!");
+                    GuildManager::getGuildByName($guild)->broadcastMessage("[Guild] ". $sender->getName() . " has joined the Guild!");
+                }
+                else $sender->sendMessage("This guild has been disbanded.");
+                $sender->removeGuildInvitation($guild);
+            }
+            else $sender->sendMessage("You were not invited by that guild.");
+        }
+        else $sender->sendMessage("You are already in a guild.");
     }
 
     public static function decline(Session $sender, string $guild): void
     {
+        if($sender->isInvitedByGuild($guild))
+        {
+            if(GuildManager::guildExists($guild))
+            {
+                $invitation = $sender->getGuildInvites()[$guild];
+                $inviter = $invitation->getInviter();
+                $sender->sendMessage("You declined ". $inviter . "'s invitation to join the $guild Guild.");
+                if(SessionManager::isOnline($inviter)) SessionManager::getSessionByName($inviter)->sendMessage($sender->getName() . " declined your guild invitation.");
 
+            }
+            else $sender->sendMessage("This guild no longer exists.");
+            $sender->removeGuildInvitation($guild);
+        }
+        else $sender->sendMessage("You were not invited by this guild.");
     }
 
     public static function transfer(Session $sender, string $target): void
