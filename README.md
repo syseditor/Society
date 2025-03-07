@@ -7,7 +7,7 @@ Society is a [Pocketmine](https://github.com/pmmp/PocketMine-MP "Learn more abou
 ## Features
 * Friends system (under development)
 * Party system (works, needs further attention and work)
-* Guild system (under heavy development)
+* Guild system (basic infrastructure complete, needs testing)
 * MySQL support for Friends and Guilds, while Parties are saved locally.
 
 ## How to use
@@ -19,7 +19,6 @@ For collaborations, please contact me in my discord: "immooo."
 
 ## TODO
 - [ ] Finish the basic infrastructure of all the systems.
-- [ ] Add JSON support for Parties.
 - [ ] Interaction through Forms and not through commands. (Maybe add custom-made forms?)
 - [ ] Ability to customize any message sent to players.
 - [ ] Ranking system (includes Ranks-Titles, statistics, rewards etc).
